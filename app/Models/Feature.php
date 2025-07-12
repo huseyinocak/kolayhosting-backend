@@ -41,7 +41,7 @@ class Feature extends Model
     public function plans(): BelongsToMany
     {
         return $this->belongsToMany(Plan::class, 'plan_features')
-                    ->withPivot('value') // Pivot tablosundaki 'value' sütununu dahil et
-                    ->withTimestamps(); // Pivot tablosundaki created_at ve updated_at sütunlarını kullan
+            ->withPivot('value') // Pivot tablosundaki 'value' sütununu dahil et
+            ->withTimestamps(); // Pivot tablosundaki created_at ve updated_at sütunlarını kullan
     }
 }
