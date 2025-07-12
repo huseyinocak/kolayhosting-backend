@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReviewRequest;
+use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Review;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class ReviewController extends Controller
 {
@@ -17,6 +17,8 @@ class ReviewController extends Controller
      */
     public function index()
     {
+        // Tüm incelemeleri getir ve ReviewResource ile dönüştürerek döndür.
+        // İlişkili provider ve plan verilerini de yükleyebiliriz.
         return ReviewResource::collection(Review::with(['provider', 'plan'])->get());
     }
 
@@ -28,46 +30,28 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
+        // Belirli bir incelemeyi getir ve ReviewResource ile dönüştürerek döndür.
+        // İlişkili provider ve plan verilerini de yükleyebiliriz.
         return new ReviewResource($review->load(['provider', 'plan']));
     }
 
     /**
      * Yeni bir inceleme oluştur.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreReviewRequest  $request // Form Request kullanıldı
      * @return \App\Http\Resources\ReviewResource|\Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreReviewRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'provider_id' => 'nullable|exists:providers,id',
-                'plan_id' => 'nullable|exists:plans,id',
-                'user_name' => 'nullable|string|max:255',
-                'rating' => 'required|integer|min:1|max:5',
-                'title' => 'nullable|string|max:255',
-                'content' => 'required|string',
-                'published_at' => 'nullable|date',
-                'is_approved' => 'boolean',
-            ]);
-
-            // provider_id veya plan_id'den en az birinin dolu olması kontrolü
-            if (empty($validatedData['provider_id']) && empty($validatedData['plan_id'])) {
-                throw ValidationException::withMessages([
-                    'provider_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                    'plan_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                ]);
-            }
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             $review = Review::create($validatedData);
 
             return new ReviewResource($review);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'İnceleme oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -78,53 +62,21 @@ class ReviewController extends Controller
     /**
      * Belirli bir incelemeyi güncelle.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\UpdateReviewRequest  $request // Form Request kullanıldı
      * @param  \App\Models\Review  $review
      * @return \App\Http\Resources\ReviewResource|\Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Review $review)
+    public function update(UpdateReviewRequest $request, Review $review)
     {
         try {
-            $validatedData = $request->validate([
-                'provider_id' => 'nullable|exists:providers,id',
-                'plan_id' => 'nullable|exists:plans,id',
-                'user_name' => 'nullable|string|max:255',
-                'rating' => 'sometimes|required|integer|min:1|max:5',
-                'title' => 'nullable|string|max:255',
-                'content' => 'sometimes|required|string',
-                'published_at' => 'nullable|date',
-                'is_approved' => 'boolean',
-            ]);
-
-            // provider_id veya plan_id'den en az birinin dolu olması kontrolü
-            // Eğer her ikisi de boşsa ve zaten boş değillerse hata ver
-            if (isset($validatedData['provider_id']) && isset($validatedData['plan_id'])) {
-                if (empty($validatedData['provider_id']) && empty($validatedData['plan_id'])) {
-                    throw ValidationException::withMessages([
-                        'provider_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                        'plan_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                    ]);
-                }
-            } else if (!isset($validatedData['provider_id']) && !isset($validatedData['plan_id'])) {
-                // Eğer hiçbiri gönderilmediyse mevcut değerleri kontrol et
-                if (empty($review->provider_id) && empty($review->plan_id)) {
-                    throw ValidationException::withMessages([
-                        'provider_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                        'plan_id' => 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.',
-                    ]);
-                }
-            }
-
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             $review->update($validatedData);
 
             return new ReviewResource($review);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'İnceleme güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),

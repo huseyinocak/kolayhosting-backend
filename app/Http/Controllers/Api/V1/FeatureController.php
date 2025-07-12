@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFeatureRequest;
+use App\Http\Requests\UpdateFeatureRequest;
 use App\Http\Resources\FeatureResource;
 use App\Models\Feature;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class FeatureController extends Controller
 {
@@ -34,27 +34,20 @@ class FeatureController extends Controller
     /**
      * Yeni bir özellik oluştur.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreFeatureRequest  $request // Form Request kullanıldı
      * @return \App\Http\Resources\FeatureResource|\Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreFeatureRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255|unique:features,name',
-                'unit' => 'nullable|string|max:255',
-                'type' => 'required|in:boolean,numeric,text',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             $feature = Feature::create($validatedData);
 
             return new FeatureResource($feature);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Özellik oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -65,28 +58,21 @@ class FeatureController extends Controller
     /**
      * Belirli bir özelliği güncelle.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\UpdateFeatureRequest  $request // Form Request kullanıldı
      * @param  \App\Models\Feature  $feature
      * @return \App\Http\Resources\FeatureResource|\Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Feature $feature)
+    public function update(UpdateFeatureRequest $request, Feature $feature)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'sometimes|required|string|max:255|unique:features,name,' . $feature->id,
-                'unit' => 'nullable|string|max:255',
-                'type' => 'sometimes|required|in:boolean,numeric,text',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             $feature->update($validatedData);
 
             return new FeatureResource($feature);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Özellik güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),

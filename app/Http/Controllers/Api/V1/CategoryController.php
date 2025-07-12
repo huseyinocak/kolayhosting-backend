@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PlanResource;
 use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
     /**
+     * /**
      * Tüm kategorileri listele.
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
@@ -36,28 +36,22 @@ class CategoryController extends Controller
     /**
      * Yeni bir kategori oluştur.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreCategoryRequest  $request // Form Request kullanıldı
      * @return \App\Http\Resources\CategoryResource|\Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255|unique:categories,name',
-                'description' => 'nullable|string',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
-            $validatedData['slug'] = Str::slug($validatedData['name']);
+            $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
 
             $category = Category::create($validatedData);
 
             return new CategoryResource($category);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Kategori oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -68,31 +62,25 @@ class CategoryController extends Controller
     /**
      * Belirli bir kategoriyi güncelle.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\UpdateCategoryRequest  $request // Form Request kullanıldı
      * @param  \App\Models\Category  $category
      * @return \App\Http\Resources\CategoryResource|\Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'sometimes|required|string|max:255|unique:categories,name,' . $category->id,
-                'description' => 'nullable|string',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             if (isset($validatedData['name'])) {
-                $validatedData['slug'] = Str::slug($validatedData['name']);
+                $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
             }
 
             $category->update($validatedData);
 
             return new CategoryResource($category);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Kategori güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),

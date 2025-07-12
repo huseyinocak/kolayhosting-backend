@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProviderRequest;
+use App\Http\Requests\UpdateProviderRequest;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\ProviderResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Provider;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class ProviderController extends Controller
 {
@@ -36,31 +36,22 @@ class ProviderController extends Controller
     /**
      * Yeni bir sağlayıcı oluştur.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreProviderRequest  $request // Form Request kullanıldı
      * @return \App\Http\Resources\ProviderResource|\Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreProviderRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255|unique:providers,name',
-                'logo_url' => 'nullable|url|max:255',
-                'website_url' => 'required|url|max:255',
-                'description' => 'nullable|string',
-                'average_rating' => 'nullable|numeric|min:0|max:5',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
 
             $provider = Provider::create($validatedData);
 
             return new ProviderResource($provider);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Sağlayıcı oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -71,20 +62,15 @@ class ProviderController extends Controller
     /**
      * Belirli bir sağlayıcıyı güncelle.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\UpdateProviderRequest  $request // Form Request kullanıldı
      * @param  \App\Models\Provider  $provider
      * @return \App\Http\Resources\ProviderResource|\Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Provider $provider)
+    public function update(UpdateProviderRequest $request, Provider $provider)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'sometimes|required|string|max:255|unique:providers,name,' . $provider->id,
-                'logo_url' => 'nullable|url|max:255',
-                'website_url' => 'sometimes|required|url|max:255',
-                'description' => 'nullable|string',
-                'average_rating' => 'nullable|numeric|min:0|max:5',
-            ]);
+            // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
+            $validatedData = $request->validated();
 
             if (isset($validatedData['name'])) {
                 $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
@@ -93,12 +79,8 @@ class ProviderController extends Controller
             $provider->update($validatedData);
 
             return new ProviderResource($provider);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Doğrulama hatası',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Sağlayıcı güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),
