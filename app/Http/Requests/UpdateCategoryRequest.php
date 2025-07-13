@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -13,9 +14,10 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Add your authorization logic here.
-        // For now, allowing all users to update a category.
-        return true;
+        // Kategori oluşturma yetkisini burada kontrol et.
+        // CategoryPolicy'deki 'create' metodunun mantığını buraya taşıyoruz.
+        // Sadece admin rolüne sahip kullanıcılar kategori oluşturabilir.
+        return Auth::check() && Auth::user()->role === 'admin';
     }
 
     /**

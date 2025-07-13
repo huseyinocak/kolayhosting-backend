@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreFeatureRequest extends FormRequest
 {
@@ -15,7 +16,7 @@ class StoreFeatureRequest extends FormRequest
     {
         // Yetkilendirme mantığınızı buraya ekleyin.
         // Şimdilik herkesin özellik oluşturmasına izin veriyoruz.
-        return true;
+        return Auth::check() && Auth::user()->role === 'admin';
     }
 
     /**

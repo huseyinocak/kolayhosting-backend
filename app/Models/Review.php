@@ -31,6 +31,7 @@ class Review extends Model
     protected $fillable = [
         'provider_id',
         'plan_id',
+        'user_id',
         'user_name',
         'rating',
         'title',
@@ -57,5 +58,15 @@ class Review extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * İncelemeyi yapan kullanıcıyı tanımlar.
+     *
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

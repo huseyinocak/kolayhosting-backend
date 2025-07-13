@@ -9,9 +9,11 @@ use App\Http\Resources\PlanResource;
 use App\Http\Resources\ProviderResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Provider;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ProviderController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Tüm sağlayıcıları listele.
      *
@@ -19,6 +21,7 @@ class ProviderController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Provider::class);
         return ProviderResource::collection(Provider::all());
     }
 
@@ -30,6 +33,7 @@ class ProviderController extends Controller
      */
     public function show(Provider $provider)
     {
+        $this->authorize('view', $provider);
         return new ProviderResource($provider);
     }
 
@@ -96,6 +100,7 @@ class ProviderController extends Controller
      */
     public function destroy(Provider $provider)
     {
+        $this->authorize('delete', $provider);
         try {
             $provider->delete();
 
@@ -116,6 +121,7 @@ class ProviderController extends Controller
      */
     public function getPlansByProvider(Provider $provider)
     {
+        $this->authorize('view', $provider); // Sağlayıcıyı görüntüleme yetkisi olanlar planlarını da görebilir.
         return PlanResource::collection($provider->plans);
     }
 
@@ -127,6 +133,7 @@ class ProviderController extends Controller
      */
     public function getReviewsByProvider(Provider $provider)
     {
+        $this->authorize('view', $provider); // Sağlayıcıyı görüntüleme yetkisi olanlar incelemelerini de görebilir.
         return ReviewResource::collection($provider->reviews);
     }
 }

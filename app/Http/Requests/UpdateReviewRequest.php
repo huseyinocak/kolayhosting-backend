@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateReviewRequest extends FormRequest
 {
@@ -13,9 +14,30 @@ class UpdateReviewRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Yetkilendirme mantığınızı buraya ekleyin.
-        // Şimdilik herkesin inceleme güncellemesine izin veriyoruz.
-        return true;
+        // Yetkilendirme mantığını burada kontrol et.
+        // İncelemeyi güncelleyen kullanıcı ya admin olmalı
+        // ya da incelemenin sahibi olmalıdır.
+
+        // Kullanıcının kimliği doğrulanmış mı?
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        $review = $this->route('review'); // Route Model Binding ile inceleme modelini al
+
+        // Eğer inceleme modeli mevcut değilse (örn. geçersiz ID), yetkilendirme başarısız.
+        if (!$review) {
+            return false;
+        }
+
+        // Admin rolüne sahipse her zaman izin ver
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        // İncelemenin sahibi ise izin ver
+        return $user->id === $review->user_id;
     }
 
     /**

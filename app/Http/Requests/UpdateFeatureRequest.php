@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateFeatureRequest extends FormRequest
 {
@@ -13,9 +14,8 @@ class UpdateFeatureRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Yetkilendirme mantığınızı buraya ekleyin.
-        // Şimdilik herkesin özellik güncellemesine izin veriyoruz.
-        return true;
+        return Auth::check() && Auth::user()->role === 'admin';
+        ;
     }
 
     /**

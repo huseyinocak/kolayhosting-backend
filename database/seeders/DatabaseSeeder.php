@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Review;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -29,10 +27,7 @@ class DatabaseSeeder extends Seeder
             PlanSeeder::class,
             PlanFeatureSeeder::class,
             ReviewSeeder::class,
-            // Uncomment the following line if you have a UserSeeder
-            // UserSeeder::class,
-            // Uncomment the following line if you have a ReviewSeeder
-            // Add other seeders here as needed
+            UserSeeder::class,
         ]);
 
 

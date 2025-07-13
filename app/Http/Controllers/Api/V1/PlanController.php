@@ -9,9 +9,11 @@ use App\Http\Resources\FeatureResource;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Plan;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PlanController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Tüm planları listele.
      *
@@ -19,6 +21,7 @@ class PlanController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Plan::class);
         return PlanResource::collection(Plan::with(['category', 'provider'])->get());
     }
 
@@ -30,6 +33,7 @@ class PlanController extends Controller
      */
     public function show(Plan $plan)
     {
+        $this->authorize('view', $plan);
         return new PlanResource($plan->load(['category', 'provider', 'features', 'reviews']));
     }
 
@@ -100,6 +104,7 @@ class PlanController extends Controller
      */
     public function destroy(Plan $plan)
     {
+        $this->authorize('delete', $plan);
         try {
             $plan->delete();
 
@@ -120,6 +125,7 @@ class PlanController extends Controller
      */
     public function getFeaturesByPlan(Plan $plan)
     {
+        $this->authorize('view', $plan); // Planı görüntüleme yetkisi olanlar özelliklerini de görebilir.
         // Plana ait özellikleri getir ve FeatureResource ile dönüştürerek döndür.
         // pivot tablosundaki 'value' değerini de alabilmek için withPivot kullanıyoruz.
         return FeatureResource::collection($plan->features);
@@ -133,6 +139,7 @@ class PlanController extends Controller
      */
     public function getReviewsByPlan(Plan $plan)
     {
+        $this->authorize('view', $plan); // Planı görüntüleme yetkisi olanlar incelemelerini de görebilir.
         return ReviewResource::collection($plan->reviews);
     }
 }

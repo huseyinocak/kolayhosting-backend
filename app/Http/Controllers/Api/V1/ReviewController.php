@@ -7,9 +7,11 @@ use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Review;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ReviewController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Tüm incelemeleri listele.
      *
@@ -17,6 +19,7 @@ class ReviewController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Review::class);
         // Tüm incelemeleri getir ve ReviewResource ile dönüştürerek döndür.
         // İlişkili provider ve plan verilerini de yükleyebiliriz.
         return ReviewResource::collection(Review::with(['provider', 'plan'])->get());
@@ -30,6 +33,7 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
+        $this->authorize('view', $review);
         // Belirli bir incelemeyi getir ve ReviewResource ile dönüştürerek döndür.
         // İlişkili provider ve plan verilerini de yükleyebiliriz.
         return new ReviewResource($review->load(['provider', 'plan']));
@@ -92,6 +96,7 @@ class ReviewController extends Controller
      */
     public function destroy(Review $review)
     {
+        $this->authorize('delete', $review);
         try {
             $review->delete();
 

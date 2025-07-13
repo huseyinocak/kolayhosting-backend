@@ -7,9 +7,11 @@ use App\Http\Requests\StoreFeatureRequest;
 use App\Http\Requests\UpdateFeatureRequest;
 use App\Http\Resources\FeatureResource;
 use App\Models\Feature;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class FeatureController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Tüm özellikleri listele.
      *
@@ -17,6 +19,7 @@ class FeatureController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Feature::class);
         return FeatureResource::collection(Feature::all());
     }
 
@@ -28,6 +31,7 @@ class FeatureController extends Controller
      */
     public function show(Feature $feature)
     {
+        $this->authorize('view', $feature);
         return new FeatureResource($feature);
     }
 
@@ -88,6 +92,7 @@ class FeatureController extends Controller
      */
     public function destroy(Feature $feature)
     {
+        $this->authorize('delete', $feature);
         try {
             $feature->delete();
 

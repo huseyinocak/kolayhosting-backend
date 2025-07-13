@@ -8,9 +8,12 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PlanResource;
 use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CategoryController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * /**
      * Tüm kategorileri listele.
@@ -19,6 +22,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
+        // viewAny metodu için yetkilendirme kontrolü
+        $this->authorize('viewAny', Category::class);
         return CategoryResource::collection(Category::all());
     }
 
@@ -30,6 +35,8 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
+        // view metodu için yetkilendirme kontrolü
+        $this->authorize('view', $category);
         return new CategoryResource($category);
     }
 
@@ -96,6 +103,8 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        // delete metodu için yetkilendirme kontrolü
+        $this->authorize('delete', $category);
         try {
             $category->delete();
 
@@ -116,6 +125,9 @@ class CategoryController extends Controller
      */
     public function getPlansByCategory(Category $category)
     {
+        // Bu metod için de yetkilendirme kontrolü ekleyebilirsiniz, örneğin viewAny veya özel bir yetki.
+        // Şimdilik view yetkisini kullanabiliriz, çünkü tek bir kategoriye ait planlar gösteriliyor.
+        $this->authorize('view', $category);
         return PlanResource::collection($category->plans);
     }
 }
