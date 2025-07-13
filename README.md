@@ -1,61 +1,183 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# KolayHosting API: Hosting Karşılaştırma Rehberin!
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+KolayHosting, farklı hosting sağlayıcılarını ve planlarını karşılaştırmana yarayan süper kullanışlı bir API. Sana en uygun hosting'i bulman için tasarlandı!
 
-## About Laravel
+## İçindekiler
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   [Bu Proje Ne Ayak?](https://www.google.com/search?q=%23bu-proje-ne-ayak "null")
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   [Neler Yapabiliyor?](https://www.google.com/search?q=%23neler-yapabiliyor "null")
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   [Hangi Teknolojilerle Yapıldı?](https://www.google.com/search?q=%23hangi-teknolojilerle-yap%C4%B1ld%C4%B1 "null")
 
-## Learning Laravel
+-   [Nasıl Kurulur?](https://www.google.com/search?q=%23nas%C4%B1l-kurulur "null")
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+-   [API Uç Noktaları (Yani Nereye İstek Atacağız?)](https://www.google.com/search?q=%23api-u%C3%A7-noktalar%C4%B1-yani-nereye-istek-ataca%C4%9F%C4%B1z "null")
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+-   [Yetkilendirme (Kim Kimdir?)](https://www.google.com/search?q=%23yetkilendirme-kim-kimdir "null")
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+-   [Postman Koleksiyonu (Hazır İstekler!)](https://www.google.com/search?q=%23postman-koleksiyonu-haz%C4%B1r-istekler "null")
 
-## Laravel Sponsors
+-   [Katkıda Bulunmak İster Misin?](https://www.google.com/search?q=%23katk%C4%B1da-bulunmak-ister-misin "null")
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+-   [Lisans (Resmi Kısım)](https://www.google.com/search?q=%23lisans-resmi-k%C4%B1s%C4%B1m "null")
 
-### Premium Partners
+## Bu Proje Ne Ayak?
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+KolayHosting, hosting planları ve sağlayıcıları için bir veri tabanı ve API sunar. Frontend uygulamalarına veri sağlayarak, hosting arayanlara yardımcı olmayı amaçlarız!
 
-## Contributing
+## Neler Yapabiliyor?
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+-   **Kategorileri Yönet:** Hosting kategorilerini (Web, VPS vb.) CRUD işlemleriyle yönet.
 
-## Code of Conduct
+-   **Sağlayıcıları Yönet:** Hosting sağlayıcılarını (Hostinger, Bluehost vb.) CRUD işlemleriyle yönet.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+-   **Planları Yönet:** Sağlayıcıların planlarını (fiyat, özellik vb.) CRUD işlemleriyle yönet.
 
-## Security Vulnerabilities
+-   **Özellikleri Yönet:** Planlara ait özellikleri (Disk Alanı, SSL vb.) CRUD işlemleriyle tanımla.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+-   **İncelemeleri Yönet:** Kullanıcı yorumlarını ve puanlarını yönet.
 
-## License
+-   **Veri Filtreleme/Sıralama:** Verileri kolayca filtrele ve sırala.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+-   **Rol Tabanlı Yetkilendirme:** Admin ve normal kullanıcı rolleriyle erişimi kontrol et.
+
+-   **API Güvenliği:** Laravel Sanctum ile API token güvenliği.
+
+-   **Standart Yanıtlar:** Tüm API yanıtları tutarlı bir formatta.
+
+## Hangi Teknolojilerle Yapıldı?
+
+-   **Backend:** Laravel 12
+
+-   **Dil:** PHP
+
+-   **Veritabanı:** MySQL
+
+-   **Giriş-Çıkış:** Laravel Sanctum
+
+-   **CORS:** `fruitcake/laravel-cors`
+
+-   **Yetkilendirme:** Laravel Policies
+
+-   **İstek Doğrulama:** Laravel Form Requests
+
+-   **API Yanıtları:** Laravel API Resources
+
+## Nasıl Kurulur?
+
+Projeyi çalıştırmak için:
+
+1.  **Depoyu Klonla:**
+
+    ```
+    git clone https://github.com/huseyinocak/kolayhosting-backend.git
+    cd kolayhosting
+
+    ```
+
+2.  **Gerekli Paketleri Yükle:**
+
+    ```
+    composer install
+
+    ```
+
+3.  **Ayarlar Dosyasını Hazırla:** `.env.example` dosyasını `.env` olarak kopyala ve veritabanı/uygulama ayarlarını düzenle.
+
+    ```
+    APP_URL=http://localhost:8000
+    DB_DATABASE=kolayhosting_db
+    DB_USERNAME=root
+    DB_PASSWORD=
+    SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1:8000
+
+    ```
+
+4.  **Uygulama Anahtarını Oluştur:**
+
+    ```
+    php artisan key:generate
+
+    ```
+
+5.  **Veritabanını Oluştur:**
+
+    ```
+    php artisan migrate
+
+    ```
+
+6.  **Örnek Verileri Doldur:**
+
+    ```
+    php artisan db:seed
+
+    ```
+
+    (Varsayılan kullanıcılar: `admin@example.com` ve `user@example.com`, şifreleri `password`)
+
+7.  **Sunucuyu Başlat:**
+
+    ```
+    php artisan serve
+
+    ```
+
+    API'n artık `http://localhost:8000` adresinde aktif!
+
+## API Uç Noktaları (Yani Nereye İstek Atacağız?)
+
+Tüm API adresleri `/api/v1/` ile başlar. Korumalı rotalar için `Authorization: Bearer <TOKEN>` başlığını kullanmayı unutma!
+
+-   **Giriş-Çıkış (Authentication):**
+
+    -   `POST /api/v1/register`
+
+    -   `POST /api/v1/login`
+
+    -   `POST /api/v1/logout` (Korumalı)
+
+    -   `GET` /api/v1/user (Korumalı)
+
+-   **Kategoriler:** `GET /api/v1/categories`, `GET /api/v1/categories/{id}` (Admin için POST/PUT/DELETE)
+
+-   **Sağlayıcılar:** `GET /api/v1/providers`, `GET /api/v1/providers/{id}` (Admin için POST/PUT/DELETE)
+
+-   **Planlar:** `GET /api/v1/plans`, `GET /api/v1/plans/{id}` (Admin için POST/PUT/DELETE)
+
+-   **Özellikler:** `GET /api/v1/features`, `GET /api/v1/features/{id}` (Admin için POST/PUT/DELETE)
+
+-   **İncelemeler:** `GET /api/v1/reviews`, `GET /api/v1/reviews/{id}` (Kullanıcılar POST/PUT/DELETE kendi incelemelerini, Admin her şeyi)
+
+-   **İlişkili Veriler:**
+
+    -   `GET /api/v1/providers/{provider}/plans`
+
+    -   `GET` /api/v1/categories/{category}/plans
+
+    -   `GET /api/v1/plans/{plan}/features`
+
+    -   `GET /api/v1/providers/{provider}/reviews`
+
+    -   `GET /api/v1/plans/{plan}/reviews`
+
+## Yetkilendirme (Kim Kimdir?)
+
+-   **Admin Rolü:** Tüm CRUD işlemlerini yapabilir.
+
+-   **Normal Kullanıcı Rolü:** Veri okuyabilir ve kendi incelemelerini yönetebilir.
+
+## Postman Koleksiyonu (Hazır İstekler!)
+
+API'yi denemek için Postman koleksiyonunu kullanabilirsin. Postman'e aktarmak için "Import" -> "Raw text" yolunu izle ve tam JSON içeriğini yapıştır. (Tam JSON içeriği için projenin ana deposuna bakabilirsin.)
+
+## Katkıda Bulunmak İster Misin?
+
+Projemize katkı sağlamak istersen, süper olur! Lütfen bir Pull Request atmadan önce mevcut kod yazım kurallarına uymaya çalış.
+
+## Lisans (Resmi Kısım)
+
+Bu proje MIT Lisansı altında. Daha fazla bilgi için `LICENSE` dosyasına bakabilirsin.
+
+**KolayHosting Ekibi**
