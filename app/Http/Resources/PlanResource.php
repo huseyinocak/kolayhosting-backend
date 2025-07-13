@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 class PlanResource extends JsonResource
 {
@@ -14,6 +15,9 @@ class PlanResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Kullanıcının admin olup olmadığını kontrol eden yardımcı değişken
+        $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+
         return [
             'id' => $this->id,
             'provider_id' => $this->provider_id,
@@ -22,8 +26,9 @@ class PlanResource extends JsonResource
             'slug' => $this->slug,
             'price' => $this->price,
             'currency' => $this->currency,
-            'renewal_price' => $this->renewal_price,
-            'discount_percentage' => $this->discount_percentage,
+            // Sadece adminl0erin görmesi gereken alanlar
+            'renewal_price' => $this->when($isAdmin, $this->renewal_price),
+            'discount_percentage' => $this->when($isAdmin, $this->discount_percentage),
             'features_summary' => $this->features_summary,
             'link' => $this->link,
             'status' => $this->status,
