@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         // Admin kullanıcı
         User::create([
             'name' => 'Admin User',
-            'email' => 'admin@example.com',
+            'email' => 'admin@kolayhosting.com',
             'password' => Hash::make('124312'),
             'role' => 'admin',
         ]);
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         // Normal kullanıcı
         User::create([
             'name' => 'Regular User',
-            'email' => 'user@example.com',
+            'email' => 'user@kolayhosting.com',
             'password' => Hash::make('124312'),
             'role' => 'user',
         ]);
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
         // Başka bir normal kullanıcı (Review testleri için)
         User::create([
             'name' => 'Another User',
-            'email' => 'another@example.com',
+            'email' => 'another@kolayhosting.com',
             'password' => Hash::make('124312'),
             'role' => 'user',
         ]);

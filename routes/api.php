@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Route;
 // API Versiyon 1 (v1) Rotaları
 Route::prefix('v1')->group(function () {
 
-
     // Kimlik Doğrulama Rotaları (Auth Rate Limiter ile korunur)
     // Bu rotalar için 'auth' adını verdiğimiz rate limiter'ı kullanıyoruz.
     Route::middleware('throttle:auth')->group(function () {
@@ -31,46 +30,76 @@ Route::prefix('v1')->group(function () {
         Route::post('login', [AuthController::class, 'login']);
     });
 
+    // Herkesin erişebileceği Public Okuma Rotaları
+    // Bu rotalar için 'api' adını verdiğimiz genel rate limiter'ı kullanıyoruz.
+    Route::middleware('throttle:api')->group(function () {
+        // Kategoriler için Public API rotaları
+        Route::get('categories', [CategoryController::class, 'index']);
+        Route::get('categories/{category}', [CategoryController::class, 'show']);
+        Route::get('categories/{category}/plans', [CategoryController::class, 'getPlansByCategory']);
+
+        // Sağlayıcılar için Public API rotaları
+        Route::get('providers', [ProviderController::class, 'index']);
+        Route::get('providers/{provider}', [ProviderController::class, 'show']);
+        Route::get('providers/{provider}/plans', [ProviderController::class, 'getPlansByProvider']);
+        Route::get('providers/{provider}/reviews', [ProviderController::class, 'getReviewsByProvider']);
+
+        // Planlar için Public API rotaları
+        Route::get('plans', [PlanController::class, 'index']);
+        Route::get('plans/{plan}', [PlanController::class, 'show']);
+        Route::get('plans/{plan}/features', [PlanController::class, 'getFeaturesByPlan']);
+        Route::get('plans/{plan}/reviews', [PlanController::class, 'getReviewsByPlan']);
+
+        // Özellikler için Public API rotaları
+        Route::get('features', [FeatureController::class, 'index']);
+        Route::get('features/{feature}', [FeatureController::class, 'show']);
+
+        // İncelemeler için Public API rotaları
+        Route::get('reviews', [ReviewController::class, 'index']);
+        Route::get('reviews/{review}', [ReviewController::class, 'show']);
+    });
+
+
     // Kimliği doğrulanmış kullanıcılar için korumalı rotalar
+    // Bu rotalar için 'api' adını verdiğimiz genel rate limiter'ı kullanıyoruz.
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']); // Kimliği doğrulanmış kullanıcı bilgilerini getir
 
-        // Kategoriler için API rotaları
-        Route::apiResource('categories', CategoryController::class);
-        Route::get('categories/{category}/plans', [CategoryController::class, 'getPlansByCategory']);
+        // Kategoriler için API rotaları (CRUD)
+        Route::post('categories', [CategoryController::class, 'store']);
+        Route::put('categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
 
-        // Sağlayıcılar için API rotaları
-        Route::apiResource('providers', ProviderController::class);
-        Route::get('providers/{provider}/plans', [ProviderController::class, 'getPlansByProvider']);
-        Route::get('providers/{provider}/reviews', [ProviderController::class, 'getReviewsByProvider']);
+        // Sağlayıcılar için API rotaları (CRUD)
+        Route::post('providers', [ProviderController::class, 'store']);
+        Route::put('providers/{provider}', [ProviderController::class, 'update']);
+        Route::delete('providers/{provider}', [ProviderController::class, 'destroy']);
 
-        // Planlar için API rotaları
-        Route::apiResource('plans', PlanController::class);
-        Route::get('plans/{plan}/features', [PlanController::class, 'getFeaturesByPlan']);
-        Route::get('plans/{plan}/reviews', [PlanController::class, 'getReviewsByPlan']);
+        // Planlar için API rotaları (CRUD)
+        Route::post('plans', [PlanController::class, 'store']);
+        Route::put('plans/{plan}', [PlanController::class, 'update']);
+        Route::delete('plans/{plan}', [PlanController::class, 'destroy']);
 
-        // Özellikler için API rotaları
-        Route::apiResource('features', FeatureController::class);
+        // Özellikler için API rotaları (CRUD)
+        Route::post('features', [FeatureController::class, 'store']);
+        Route::put('features/{feature}', [FeatureController::class, 'update']);
+        Route::delete('features/{feature}', [FeatureController::class, 'destroy']);
 
-        // İncelemeler için API rotaları
-        Route::apiResource('reviews', ReviewController::class);
+        // İncelemeler için API rotaları (Oluşturma, Güncelleme, Silme)
+        // Politika (Policy) ile yetkilendirme yönetilecektir.
+        Route::post('reviews', [ReviewController::class, 'store']);
+        Route::put('reviews/{review}', [ReviewController::class, 'update']);
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy']);
     });
-
-    // İsteğe bağlı: Public olarak erişilebilir sadece okuma rotaları (eğer varsa)
-    // Örneğin, kullanıcılar giriş yapmadan da kategori veya plan listelerini görebilir.
-    // Ancak CRUD işlemleri için kimlik doğrulama gerekecektir.
-    // Route::get('categories', [CategoryController::class, 'index']);
-    // Route::get('categories/{category}', [CategoryController::class, 'show']);
-    // ... diğer public rotalar ...
-
 });
 
 // Gelecekteki versiyonlar için örnek yapı:
 /*
 Route::prefix('v2')->group(function () {
     // V2'ye özel rotalar buraya gelecek
-    // Örneğin, yeni bir model veya mevcut modeller için farklı bir yapı
-    Route::apiResource('new-resource', NewResourceController::class);
+    Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+        Route::apiResource('new-resource', NewResourceController::class);
+    });
 });
 */
