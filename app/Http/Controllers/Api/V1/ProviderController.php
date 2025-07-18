@@ -24,7 +24,7 @@ class ProviderController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Provider::class); // Policy kontrolü hala burada
+        // $this->authorize('viewAny', Provider::class); // Policy kontrolü hala burada
         // viewAny metodu için yetkilendirme kontrolü
 
         $query = Provider::query();

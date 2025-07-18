@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ReviewStatus;
+use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UpdateReviewRequest extends FormRequest
 {
@@ -32,7 +35,7 @@ class UpdateReviewRequest extends FormRequest
         }
 
         // Admin rolüne sahipse her zaman izin ver
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true;
         }
 
@@ -47,16 +50,20 @@ class UpdateReviewRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'provider_id' => 'nullable|exists:providers,id',
-            'plan_id' => 'nullable|exists:plans,id',
-            'user_name' => 'nullable|string|max:255',
-            'rating' => 'sometimes|required|integer|min:1|max:5',
-            'title' => 'nullable|string|max:255',
-            'content' => 'sometimes|required|string',
-            'published_at' => 'nullable|date',
-            'is_approved' => 'boolean',
+        $user = Auth::user();
+
+        $rules = [
+            'rating' => ['sometimes', 'integer', 'min:1', 'max:5'],
+            'title' => ['sometimes', 'string', 'max:255'],
+            'content' => ['sometimes', 'string'],
         ];
+
+        // Sadece adminler 'status' durumunu değiştirebilir
+        if ($user && $user->role === UserRole::ADMIN) {
+            $rules['status'] = ['sometimes', 'string', Rule::in(ReviewStatus::values())]; // 'is_approved' yerine 'status' ve enum değerleri
+        }
+
+        return $rules;
     }
 
     /**
@@ -99,11 +106,14 @@ class UpdateReviewRequest extends FormRequest
         return [
             'rating.required' => 'Derecelendirme alanı zorunludur.',
             'rating.integer' => 'Derecelendirme bir tam sayı olmalıdır.',
-            'rating.min' => 'Derecelendirme en az :min olmalıdır.',
-            'rating.max' => 'Derecelendirme en fazla :max olmalıdır.',
+            'rating.min' => 'Derecelendirme en az 1 olmalıdır.',
+            'rating.max' => 'Derecelendirme en fazla 5 olmalıdır.',
             'content.required' => 'İçerik alanı zorunludur.',
-            'provider_id.exists' => 'Belirtilen sağlayıcı ID\'si geçersiz.',
-            'plan_id.exists' => 'Belirtilen plan ID\'si geçersiz.',
+            'content.string' => 'İçerik metin olmalıdır.',
+            'title.string' => 'Başlık metin olmalıdır.',
+            'title.max' => 'Başlık en fazla 255 karakter olabilir.',
+            'status.string' => 'Durum metin olmalıdır.',
+            'status.in' => 'Geçersiz durum değeri. Durum "pending", "approved" veya "rejected" olmalıdır.',
         ];
     }
 }

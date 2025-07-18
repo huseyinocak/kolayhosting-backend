@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Review;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ReviewPolicy
 {
@@ -18,7 +18,7 @@ class ReviewPolicy
      */
     public function before(User $user, string $ability)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true; // Admin her şeye erişebilir
         }
     }
@@ -29,7 +29,7 @@ class ReviewPolicy
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar incelemeleri listeleyebilir.
         return true;
@@ -42,7 +42,7 @@ class ReviewPolicy
      * @param  \App\Models\Review  $review
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Review $review): bool
+    public function view(?User $user, Review $review): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar belirli bir incelemeyi görüntüleyebilir.
         return true;

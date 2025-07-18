@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enums\UserRole;
 use App\role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +14,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens,HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -47,7 +48,56 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => role::class  // Assuming role is an enum, adjust as necessary
+            'role' => UserRole::class // Assuming role is an enum, adjust as necessary
         ];
+    }
+
+    /**
+     * Kullanıcının admin olup olmadığını kontrol eden yardımcı fonksiyon.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::ADMIN;
+    }
+
+    /**
+     * Kullanıcının yönetici olup olmadığını kontrol eden yardımcı fonksiyon.
+     *
+     * @return bool
+     */
+    public function isManager(): bool
+    {
+        return $this->role === UserRole::MANAGER;
+    }
+
+    public function isEditor(): bool
+    {
+        return $this->role === UserRole::EDITOR;
+    }
+    public function isAuthor(): bool
+    {
+        return $this->role === UserRole::AUTHOR;
+    }
+    public function isContributors(): bool
+    {
+        return $this->role === UserRole::CONTRIBUTORS;
+    }
+    public function isModerator(): bool
+    {
+        return $this->role === UserRole::MODERATOR;
+    }
+    public function isMember(): bool
+    {
+        return $this->role === UserRole::MEMBER;
+    }
+    public function isSubscriber(): bool
+    {
+        return $this->role === UserRole::SUBSCRIBER;
+    }
+    public function isUser(): bool
+    {
+        return $this->role === UserRole::USER;
     }
 }

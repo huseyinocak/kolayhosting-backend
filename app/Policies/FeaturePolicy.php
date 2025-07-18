@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Feature;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -18,7 +19,7 @@ class FeaturePolicy
      */
     public function before(User $user, string $ability)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true; // Admin her şeye erişebilir
         }
     }
@@ -29,7 +30,7 @@ class FeaturePolicy
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar özellikleri listeleyebilir.
         return true;
@@ -57,10 +58,11 @@ class FeaturePolicy
     public function create(User $user): bool
     {
         // Sadece adminler özellik oluşturabilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
+        ;
     }
 
-   /**
+    /**
      * Kullanıcının bir özelliği güncelleyip güncelleyemeyeceğini belirle.
      *
      * @param  \App\Models\User  $user
@@ -70,7 +72,7 @@ class FeaturePolicy
     public function update(User $user, Feature $feature): bool
     {
         // Sadece adminler özellikleri güncelleyebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -83,7 +85,7 @@ class FeaturePolicy
     public function delete(User $user, Feature $feature): bool
     {
         // Sadece adminler özellikleri silebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**

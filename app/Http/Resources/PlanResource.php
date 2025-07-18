@@ -2,9 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
+use App\Enums\UserRole;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Auth;
 
 class PlanResource extends JsonResource
 {
@@ -13,20 +12,25 @@ class PlanResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray($request): array
     {
         // Kullanıcının admin olup olmadığını kontrol eden yardımcı değişken
-        $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+        // Auth::check() yerine $request->user() kullanmak, middleware olmadan da token varsa kullanıcıyı yakalar.
+        $user = $request->user(); // İstekten kimliği doğrulanmış kullanıcıyı al
+        $isAdmin = $user && $user->role === UserRole::ADMIN;
+        // Eğer kullanıcının rolü bir enum değilse ve string ise:
+        // $isAdmin = $user && $user->role === 'admin';
+
 
         return [
             'id' => $this->id,
             'provider_id' => $this->provider_id,
             'category_id' => $this->category_id,
             'name' => $this->name,
-            'slug' => $this->slug,
+            'slug' => $this->slug, // Adminler için sluga -admin ekle
             'price' => $this->price,
             'currency' => $this->currency,
-            // Sadece adminl0erin görmesi gereken alanlar
+            // Sadece adminlerin görmesi gereken alanlar
             'renewal_price' => $this->when($isAdmin, $this->renewal_price),
             'discount_percentage' => $this->when($isAdmin, $this->discount_percentage),
             'features_summary' => $this->features_summary,

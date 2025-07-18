@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ReviewStatus;
 use App\Models\Plan;
 use App\Models\Provider;
 use App\Models\Review;
@@ -33,7 +34,7 @@ class ReviewSeeder extends Seeder
                 'title' => 'Hostinger Premium çok iyi!',
                 'content' => 'Hostinger Premium Web Hosting planından çok memnunum. Hız ve destek mükemmel.',
                 'published_at' => Carbon::now()->subDays(10),
-                'is_approved' => true,
+                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
             ],
             [
                 'provider_id' => $bluehost->id ?? null,
@@ -43,7 +44,7 @@ class ReviewSeeder extends Seeder
                 'title' => 'Bluehost WordPress için ideal',
                 'content' => 'WordPress sitem için Bluehost Basic planını kullanıyorum. Kurulumu kolay ve performansı tatmin edici.',
                 'published_at' => Carbon::now()->subDays(15),
-                'is_approved' => true,
+                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
             ],
             [
                 'provider_id' => $siteground->id ?? null,
@@ -53,7 +54,7 @@ class ReviewSeeder extends Seeder
                 'title' => 'SiteGround Hızı Harika',
                 'content' => 'SiteGround StartUp planı ile sitem çok hızlı çalışıyor. Destek ekibi de çok yardımcı.',
                 'published_at' => Carbon::now()->subDays(5),
-                'is_approved' => true,
+                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
             ],
             [
                 'provider_id' => $hostinger->id ?? null,
@@ -63,7 +64,7 @@ class ReviewSeeder extends Seeder
                 'title' => 'Hostinger Genel Değerlendirme',
                 'content' => 'Hostinger genel olarak iyi bir deneyim sunuyor, fiyatları da oldukça uygun.',
                 'published_at' => Carbon::now()->subDays(20),
-                'is_approved' => true,
+                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
             ],
             [
                 'provider_id' => null, // Sadece plana özel bir yorum
@@ -73,7 +74,7 @@ class ReviewSeeder extends Seeder
                 'title' => 'Hostinger Premium Yenileme Fiyatı',
                 'content' => 'İlk başta çok iyiydi ama yenileme fiyatları biraz yüksek geldi.',
                 'published_at' => Carbon::now()->subDays(8),
-                'is_approved' => true,
+                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
             ],
         ];
         foreach ($reviews as $reviewData) {

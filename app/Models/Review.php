@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,7 +38,33 @@ class Review extends Model
         'title',
         'content',
         'published_at',
-        'is_approved',
+        'status',
+    ];
+
+    /**
+     * Modelin "boot" metodu.
+     * Yeni bir inceleme oluşturulurken varsayılan 'status' değerini ayarlar.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($review) {
+            // Eğer status alanı ayarlanmamışsa, varsayılan olarak 'pending' yap
+            if (is_null($review->status)) {
+                $review->status = ReviewStatus::PENDING;
+            }
+        });
+    }
+
+    /**
+     * Tür dönüşümü yapılması gereken sütunlar.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'published_at' => 'datetime', // Bu satırı ekleyin
+        'status' => ReviewStatus::class, // 'is_approved' yerine 'status' ve ReviewStatus enum'ına cast edildi
     ];
 
     /**

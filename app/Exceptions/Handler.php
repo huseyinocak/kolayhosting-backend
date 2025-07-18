@@ -119,7 +119,7 @@ class Handler extends ExceptionHandler
                 }
 
                 return new JsonResponse([
-                    'message' => $message,
+                    'message' => $message . $e->getMessage(),
                     'status' => $statusCode,
                 ], $statusCode);
             }

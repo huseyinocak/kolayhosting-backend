@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -18,7 +19,7 @@ class PlanPolicy
      */
     public function before(User $user, string $ability)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true; // Admin her şeye erişebilir
         }
     }
@@ -29,7 +30,7 @@ class PlanPolicy
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar planları listeleyebilir.
         return true;
@@ -42,7 +43,7 @@ class PlanPolicy
      * @param  \App\Models\Plan  $plan
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Plan $plan): bool
+    public function view(?User $user, Plan $plan): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar belirli bir planı görüntüleyebilir.
         return true;
@@ -56,7 +57,7 @@ class PlanPolicy
     public function create(User $user): bool
     {
         // Sadece adminler plan oluşturabilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -69,7 +70,7 @@ class PlanPolicy
     public function update(User $user, Plan $plan): bool
     {
         // Sadece adminler planları güncelleyebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
     /**
      * Kullanıcının bir planı silip silemeyeceğini belirle.
@@ -81,7 +82,7 @@ class PlanPolicy
     public function delete(User $user, Plan $plan): bool
     {
         // Sadece adminler planları silebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**

@@ -55,7 +55,6 @@ Route::prefix('v1')->group(function () {
         Route::get('features/{feature}', [FeatureController::class, 'show']);
 
         // İncelemeler için Public API rotaları
-        Route::get('reviews', [ReviewController::class, 'index']);
         Route::get('reviews/{review}', [ReviewController::class, 'show']);
     });
 
@@ -88,6 +87,8 @@ Route::prefix('v1')->group(function () {
 
         // İncelemeler için API rotaları (Oluşturma, Güncelleme, Silme)
         // Politika (Policy) ile yetkilendirme yönetilecektir.
+        // Route::get('reviews/all', [ReviewController::class, 'indexAuthenticated']);
+        Route::get('reviews', [ReviewController::class, 'index']);
         Route::post('reviews', [ReviewController::class, 'store']);
         Route::put('reviews/{review}', [ReviewController::class, 'update']);
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy']);

@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CategoryPolicy
 {
@@ -18,7 +18,7 @@ class CategoryPolicy
      */
     public function before(User $user, string $ability)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true; // Admin her şeye erişebilir
         }
     }
@@ -29,7 +29,7 @@ class CategoryPolicy
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar kategorileri listeleyebilir.
         return true;
@@ -57,7 +57,7 @@ class CategoryPolicy
     public function create(User $user): bool
     {
         // Sadece adminler kategori oluşturabilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -70,7 +70,7 @@ class CategoryPolicy
     public function update(User $user, Category $category): bool
     {
         // Sadece adminler kategorileri güncelleyebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -83,6 +83,6 @@ class CategoryPolicy
     public function delete(User $user, Category $category): bool
     {
         // Sadece adminler kategorileri silebilir.
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 }
