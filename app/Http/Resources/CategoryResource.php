@@ -19,10 +19,11 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'plans_count' => $this->plans_count,
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
             // İlişkili planları dahil etmek isterseniz (isteğe bağlı, performans düşünülmeli)
-            'plans' => PlanResource::collection($this->whenLoaded('plans')),
+            // 'plans' => PlanResource::collection($this->whenLoaded('plans')),
         ];
     }
 }

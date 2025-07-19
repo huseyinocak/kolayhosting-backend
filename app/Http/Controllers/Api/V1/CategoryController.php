@@ -24,7 +24,7 @@ class CategoryController extends Controller
     {
         $this->authorize('viewAny', Category::class);
 
-        $query = Category::query();
+        $query = Category::withCount('plans');
 
         // Filtreleme: İsim ile filtreleme
         if ($request->has('name')) {
@@ -41,9 +41,12 @@ class CategoryController extends Controller
             // Geçersiz sıralama sütunu durumunda varsayılan sıralama
             $query->orderBy('name', 'asc');
         }
-
         // Sayfalama
-        $perPage = $request->input('per_page', 10); // Varsayılan: 10 öğe
+        $perPage = $request->get('per_page', 10); // Sayfa başına varsayılan 10 kayıt
+        if (!is_numeric($perPage) || $perPage <= 0) {
+            $perPage = 10; // Geçersiz per_page değeri için varsayılana dön
+        }
+
         $categories = $query->paginate($perPage);
 
         return CategoryResource::collection($categories);
@@ -59,6 +62,7 @@ class CategoryController extends Controller
     {
         // view metodu için yetkilendirme kontrolü
         $this->authorize('view', $category);
+        $category->loadCount('plans'); // Eğer sadece show metodunda lazımsa
         return new CategoryResource($category);
     }
 

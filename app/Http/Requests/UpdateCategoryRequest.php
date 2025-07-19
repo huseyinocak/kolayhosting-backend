@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,7 +18,7 @@ class UpdateCategoryRequest extends FormRequest
         // Kategori oluşturma yetkisini burada kontrol et.
         // CategoryPolicy'deki 'create' metodunun mantığını buraya taşıyoruz.
         // Sadece admin rolüne sahip kullanıcılar kategori oluşturabilir.
-        return Auth::check() && Auth::user()->role === 'admin';
+        return Auth::check() && Auth::user()->role === UserRole::ADMIN;
     }
 
     /**
