@@ -40,6 +40,8 @@ class UserResource extends JsonResource
             // burada koşulsuz olarak 'role' dönebilir veya tamamen kaldırılabilir.
             // Şimdilik, mevcut mantığı koruyarak bırakıyorum, ancak daha temiz bir tasarım için düşünülebilir.
             'role' => $this->when(Auth::check() && (Auth::user()->role === UserRole::ADMIN || Auth::user()->id === $this->id), $this->role),
+            'is_onboarded' => $this->is_onboarded,
+            'is_premium' => $this->is_premium, // Yeni premium özelliği
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
         ];

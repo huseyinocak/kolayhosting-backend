@@ -41,6 +41,7 @@ class Plan extends Model
         'features_summary',
         'link',
         'status',
+        'affiliate_url',
     ];
 
     /**
@@ -71,8 +72,8 @@ class Plan extends Model
     public function features(): BelongsToMany
     {
         return $this->belongsToMany(Feature::class, 'plan_features')
-                    ->withPivot('value') // Pivot tablosundaki 'value' sütununu dahil et
-                    ->withTimestamps(); // Pivot tablosundaki created_at ve updated_at sütunlarını kullan
+            ->withPivot('value') // Pivot tablosundaki 'value' sütununu dahil et
+            ->withTimestamps(); // Pivot tablosundaki created_at ve updated_at sütunlarını kullan
     }
 
     /**

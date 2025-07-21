@@ -34,6 +34,7 @@ class Provider extends Model
         'website_url',
         'description',
         'average_rating',
+        'affiliate_url',
     ];
 
     /**

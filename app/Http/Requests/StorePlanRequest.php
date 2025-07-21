@@ -35,6 +35,7 @@ class StorePlanRequest extends FormRequest
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'features_summary' => 'nullable|string',
             'link' => 'required|url|max:255',
+            'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
             'status' => 'required|in:active,inactive,deprecated',
         ];
     }

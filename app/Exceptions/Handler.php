@@ -15,6 +15,14 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class Handler extends ExceptionHandler
 {
+
+    public function report(Throwable $e)
+    {
+        if (app()->bound('sentry') && $this->shouldReport($e)) {
+            app('sentry')->captureException($e);
+        }
+        parent::report($e);
+    }
     /**
      * Raporlanmaması gereken istisna türlerinin listesi.
      *
@@ -139,4 +147,6 @@ class Handler extends ExceptionHandler
         // Bu metod artık sadece Laravel'in varsayılan işleyicisini çağırır.
         return parent::render($request, $e);
     }
+
+
 }

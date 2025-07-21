@@ -41,6 +41,7 @@ class UpdatePlanRequest extends FormRequest
             'features_summary' => 'nullable|string',
             'link' => 'sometimes|required|url|max:255',
             'status' => 'sometimes|required|in:active,inactive,deprecated',
+            'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
         ];
     }
 

@@ -25,7 +25,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'is_onboarded = false', // Yeni kullanıcılar için varsayılan olarak false
+        'is_premium'
     ];
 
     /**

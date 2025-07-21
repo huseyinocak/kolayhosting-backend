@@ -36,6 +36,7 @@ class PlanResource extends JsonResource
             'features_summary' => $this->features_summary,
             'link' => $this->link,
             'status' => $this->status,
+            'affiliate_url' => $this->affiliate_url, // Yeni affiliate URL alanı
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
             // İlişkili modelleri dahil et

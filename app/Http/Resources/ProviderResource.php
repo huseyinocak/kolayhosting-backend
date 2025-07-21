@@ -22,6 +22,7 @@ class ProviderResource extends JsonResource
             'website_url' => $this->website_url,
             'description' => $this->description,
             'average_rating' => $this->average_rating,
+            'affiliate_url' => $this->affiliate_url, // Yeni affiliate URL alanı
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
             // İlişkili planları ve incelemeleri dahil etmek isterseniz (isteğe bağlı, performans düşünülmeli)

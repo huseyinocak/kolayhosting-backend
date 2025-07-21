@@ -29,6 +29,7 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'is_onboarded' => false, // Yeni kayıt olan kullanıcı varsayılan olarak onboarding yapılmamış
             ]);
 
             // Kullanıcıya bir API token'ı oluştur
@@ -128,6 +129,29 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        // Kullanıcıyı döndürürken is_onboarded sütununu açıkça seçiyoruz.
+        // Normalde tüm sütunlar döner, ancak bu şekilde daha güvenli olur.
+        $user = $request->user()->only(['id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_onboarded','is_premium']);
+
+        return response()->json(['data' => $user]); // Frontend'deki getUser API'si data.data beklediği için 'data' anahtarı eklendi.
+    }
+
+    public function updateIsOnboarded(Request $request)
+    {
+        $user = $request->user(); // Kimliği doğrulanmış kullanıcıyı al
+
+        $request->validate([
+            'is_onboarded' => 'boolean',
+            // ... diğer profil alanları için doğrulama
+        ]);
+
+        if ($request->has('is_onboarded')) {
+            $user->is_onboarded = $request->input('is_onboarded');
+        }
+        // ... diğer profil alanlarını güncelleme
+
+        $user->save();
+
+        return response()->json(['message' => 'IsOnboarded.', 'user' => $user], 200);
     }
 }

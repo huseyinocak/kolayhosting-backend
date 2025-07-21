@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\FeatureController;
@@ -43,7 +44,8 @@ Route::prefix('v1')->group(function () {
         Route::get('providers/{provider}', [ProviderController::class, 'show']);
         Route::get('providers/{provider}/plans', [ProviderController::class, 'getPlansByProvider']);
         Route::get('providers/{provider}/reviews', [ProviderController::class, 'getReviewsByProvider']);
-
+        // AI Chatbot Route
+        Route::post('/ai/chat', [AiChatController::class, 'chat']); // Yeni AI Chatbot rotası
         // Planlar için Public API rotaları
         Route::get('plans', [PlanController::class, 'index']);
         Route::get('plans/{plan}', [PlanController::class, 'show']);
@@ -64,6 +66,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']); // Kimliği doğrulanmış kullanıcı bilgilerini getir
+        Route::put('/user/isonboarded', [AuthController::class, 'updateIsOnboarded']);
 
         // Kategoriler için API rotaları (CRUD)
         Route::post('categories', [CategoryController::class, 'store']);

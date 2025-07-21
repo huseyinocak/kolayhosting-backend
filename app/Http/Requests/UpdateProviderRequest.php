@@ -35,6 +35,7 @@ class UpdateProviderRequest extends FormRequest
             'website_url' => 'sometimes|required|url|max:255',
             'description' => 'nullable|string',
             'average_rating' => 'nullable|numeric|min:0|max:5',
+            'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
         ];
     }
 
