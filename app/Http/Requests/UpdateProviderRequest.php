@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UpdateProviderRequest extends FormRequest
 {
@@ -30,12 +31,17 @@ class UpdateProviderRequest extends FormRequest
         $providerId = $this->route('provider')->id ?? null;
 
         return [
-            'name' => 'sometimes|required|string|max:255|unique:providers,name,' . $providerId,
-            'logo_url' => 'nullable|url|max:255',
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('providers')->ignore($providerId), // Kendi adını hariç tut
+            ],
             'website_url' => 'sometimes|required|url|max:255',
             'description' => 'nullable|string',
             'average_rating' => 'nullable|numeric|min:0|max:5',
-            'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
+            'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı,
+            'logo' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // 'sometimes' ve 'nullable' eklendi
         ];
     }
 
@@ -54,6 +60,9 @@ class UpdateProviderRequest extends FormRequest
             'average_rating.numeric' => 'Ortalama derecelendirme sayısal bir değer olmalıdır.',
             'average_rating.min' => 'Ortalama derecelendirme en az :min olmalıdır.',
             'average_rating.max' => 'Ortalama derecelendirme en fazla :max olmalıdır.',
+            'logo.image' => 'Logo bir resim dosyası olmalıdır.',
+            'logo.mimes' => 'Logo sadece JPEG, PNG, JPG veya WEBP formatında olabilir.',
+            'logo.max' => 'Logo boyutu 5MB\'tan büyük olamaz.',
         ];
     }
 }

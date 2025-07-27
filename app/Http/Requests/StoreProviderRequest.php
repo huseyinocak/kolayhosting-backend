@@ -27,11 +27,11 @@ class StoreProviderRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255|unique:providers,name',
-            'logo_url' => 'nullable|url|max:255',
             'website_url' => 'required|url|max:255',
             'description' => 'nullable|string',
             'average_rating' => 'nullable|numeric|min:0|max:5',
             'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // 5MB = 5120 KB
         ];
     }
 
@@ -50,6 +50,9 @@ class StoreProviderRequest extends FormRequest
             'average_rating.numeric' => 'Ortalama derecelendirme sayısal bir değer olmalıdır.',
             'average_rating.min' => 'Ortalama derecelendirme en az :min olmalıdır.',
             'average_rating.max' => 'Ortalama derecelendirme en fazla :max olmalıdır.',
+            'logo.image' => 'Yüklenen dosya bir resim olmalıdır.',
+            'logo.mimes' => 'Logo JPEG, PNG, JPG, GIF veya SVG formatında olmalıdır.',
+            'logo.max' => 'Logo boyutu 2MB\'tan büyük olamaz.',
         ];
     }
 }

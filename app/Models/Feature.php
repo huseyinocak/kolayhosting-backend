@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FeatureType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -31,6 +32,10 @@ class Feature extends Model
         'name',
         'unit',
         'type',
+    ];
+
+    protected $casts = [
+        'type' => FeatureType::class, // FeatureType enum'ını kullanarak type sütununu cast et
     ];
 
     /**

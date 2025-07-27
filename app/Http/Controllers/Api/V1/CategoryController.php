@@ -10,6 +10,7 @@ use App\Http\Resources\PlanResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -78,7 +79,7 @@ class CategoryController extends Controller
             // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
             $validatedData = $request->validated();
 
-            $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
+            $validatedData['slug'] = Str::slug($validatedData['name']);
 
             $category = Category::create($validatedData);
 
@@ -108,7 +109,7 @@ class CategoryController extends Controller
             $validatedData = $request->validated();
 
             if (isset($validatedData['name'])) {
-                $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
+                $validatedData['slug'] = Str::slug($validatedData['name']);
             }
 
             $category->update($validatedData);

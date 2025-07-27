@@ -6,15 +6,17 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\role;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -26,8 +28,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'is_onboarded = false', // Yeni kullanıcılar için varsayılan olarak false
-        'is_premium'
+        'is_onboarded',
+        'is_premium',
     ];
 
     /**
@@ -50,8 +52,28 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => UserRole::class // Assuming role is an enum, adjust as necessary
+            'role' => UserRole::class, // Assuming role is an enum, adjust as necessary
+            'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Modelin "boot" metodu.
+     * Model olaylarını dinlemek için kullanılır.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+        // Yeni bir kullanıcı oluşturulurken 'is_onboarded' alanı boşsa, varsayılan olarak false ayarlanır
+        static::creating(function ($user) {
+            if (is_null($user->is_onboarded)) {
+                $user->is_onboarded = false; // Yeni kullanıcılar için varsayılan
+            }
+            // Eğer 'role' alanı boşsa, varsayılan olarak USER rolü atanır
+            if (is_null($user->role)) {
+                $user->role = UserRole::USER; // Yeni kullanıcılar için varsayılan
+            }
+        });
     }
 
     /**

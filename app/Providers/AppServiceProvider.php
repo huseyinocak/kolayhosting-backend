@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Exceptions\Handler;
+use App\Models\Review;
+use App\Observers\ReviewObserver;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
+        // Review modelini ReviewObserver ile gözlemle
+        Review::observe(ReviewObserver::class);
     }
 }

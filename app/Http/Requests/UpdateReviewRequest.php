@@ -50,20 +50,43 @@ class UpdateReviewRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Güncellenen incelemenin ID'sini al
+        $reviewId = $this->route('review')->id ?? null;
+
+        // Kullanıcının rolünü al (yetkilendirme authorize() metodunda yapıldığı için burada güvenli)
         $user = Auth::user();
+        $isAdmin = $user && $user->role === UserRole::ADMIN;
 
-        $rules = [
-            'rating' => ['sometimes', 'integer', 'min:1', 'max:5'],
-            'title' => ['sometimes', 'string', 'max:255'],
-            'content' => ['sometimes', 'string'],
+        return [
+            // provider_id ve plan_id alanları nullable ve sometimes olabilir.
+            // Ancak ikisi birden null olamaz. Bu kontrol withValidator'da yapılacak.
+            'provider_id' => 'nullable|exists:providers,id',
+            'plan_id' => 'nullable|exists:plans,id',
+            'user_name' => [
+                'nullable',
+                'string',
+                'max:255',
+                // user_id null ise user_name zorunlu olmalı (misafir yorumları için)
+                // Bu kural, user_id'nin null olabileceği senaryolar için eklenmiştir.
+                // Eğer her zaman user_id bekleniyorsa bu kural kaldırılabilir.
+                Rule::requiredIf(function () {
+                    return is_null($this->user_id) && is_null($this->route('review')->user_id);
+                }),
+            ],
+            'rating' => 'sometimes|required|integer|min:1|max:5',
+            'title' => 'nullable|string|max:255',
+            'content' => 'sometimes|required|string',
+            'published_at' => 'nullable|date',
+            // Sadece adminler status'ü değiştirebilir
+            'status' => [
+                'sometimes',
+                'required',
+                Rule::in(ReviewStatus::values()),
+                Rule::requiredIf(function () use ($isAdmin) {
+                    return $isAdmin; // Sadece adminler için status alanı zorunlu olabilir
+                }),
+            ],
         ];
-
-        // Sadece adminler 'status' durumunu değiştirebilir
-        if ($user && $user->role === UserRole::ADMIN) {
-            $rules['status'] = ['sometimes', 'string', Rule::in(ReviewStatus::values())]; // 'is_approved' yerine 'status' ve enum değerleri
-        }
-
-        return $rules;
     }
 
     /**
@@ -75,21 +98,15 @@ class UpdateReviewRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // Eğer provider_id veya plan_id gönderildiyse ve her ikisi de boşsa hata ver.
-            // Veya hiçbiri gönderilmediyse ve mevcut incelemede de her ikisi boşsa hata ver.
-            $providerIdPresent = $this->has('provider_id');
-            $planIdPresent = $this->has('plan_id');
+           $review = $this->route('review'); // Mevcut inceleme modelini al
 
-            $currentProviderId = $this->route('review')->provider_id ?? null; // Route model binding ile review'i al
-            $currentPlanId = $this->route('review')->plan_id ?? null;
+            // İstekte provider_id varsa onu kullan, yoksa mevcut modeldeki değeri kullan
+            $effectiveProviderId = $this->has('provider_id') ? $this->input('provider_id') : $review->provider_id;
+            // İstekte plan_id varsa onu kullan, yoksa mevcut modeldeki değeri kullan
+            $effectivePlanId = $this->has('plan_id') ? $this->input('plan_id') : $review->plan_id;
 
-            $newProviderId = $this->provider_id;
-            $newPlanId = $this->plan_id;
-
-            if (
-                ($providerIdPresent && $planIdPresent && empty($newProviderId) && empty($newPlanId)) ||
-                (!$providerIdPresent && !$planIdPresent && empty($currentProviderId) && empty($currentPlanId))
-            ) {
+            // Eğer hem provider_id hem de plan_id null ise hata ekle
+            if (is_null($effectiveProviderId) && is_null($effectivePlanId)) {
                 $validator->errors()->add('provider_id', 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.');
                 $validator->errors()->add('plan_id', 'Ya sağlayıcı ID\'si ya da plan ID\'si belirtilmelidir.');
             }
@@ -113,7 +130,9 @@ class UpdateReviewRequest extends FormRequest
             'title.string' => 'Başlık metin olmalıdır.',
             'title.max' => 'Başlık en fazla 255 karakter olabilir.',
             'status.string' => 'Durum metin olmalıdır.',
-            'status.in' => 'Geçersiz durum değeri. Durum "pending", "approved" veya "rejected" olmalıdır.',
+            'status.required' => 'Durum alanı zorunludur.',
+            'status.in' => 'Geçersiz durum tipi. Geçerli tipler: ' . implode(', ', ReviewStatus::values()) . '.',
+            'user_name.required' => 'Kullanıcı adı alanı zorunludur.',
         ];
     }
 }

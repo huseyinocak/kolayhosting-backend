@@ -14,19 +14,22 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Web Hosting', 'description' => 'Küçük ve orta ölçekli web siteleri için genel hosting çözümleri.'],
-            ['name' => 'VPS Hosting', 'description' => 'Daha fazla kontrol ve kaynak gerektiren siteler için sanal özel sunucu hosting.'],
-            ['name' => 'Dedicated Hosting', 'description' => 'Yüksek performans ve tam kontrol sağlayan özel sunucu hosting.'],
-            ['name' => 'Cloud Hosting', 'description' => 'Ölçeklenebilir ve esnek bulut tabanlı hosting çözümleri.'],
-            ['name' => 'WordPress Hosting', 'description' => 'WordPress siteleri için optimize edilmiş hosting.'],
+            ['name' => 'Paylaşımlı Hosting', 'description' => 'Birden fazla web sitesinin aynı sunucuyu paylaştığı hosting türü.'],
+            ['name' => 'VPS Hosting', 'description' => 'Sanal özel sunucu hostingi, daha fazla kontrol ve esneklik sunar.'],
+            ['name' => 'Dedicated Server', 'description' => 'Tamamen size ait fiziksel bir sunucu hostingi.'],
+            ['name' => 'Cloud Hosting', 'description' => 'Kaynakların birden fazla sunucu arasında dağıtıldığı ölçeklenebilir hosting.'],
+            ['name' => 'WordPress Hosting', 'description' => 'WordPress siteleri için optimize edilmiş hosting çözümleri.'],
+            ['name' => 'E-ticaret Hosting', 'description' => 'Online mağazalar için özel olarak tasarlanmış hosting.'],
         ];
 
         foreach ($categories as $categoryData) {
-            Category::create([
-                'name' => $categoryData['name'],
-                'slug' => Str::slug($categoryData['name']),
-                'description' => $categoryData['description'],
-            ]);
+            Category::firstOrCreate(
+                ['name' => $categoryData['name']],
+                [
+                    'slug' => Str::slug($categoryData['name']),
+                    'description' => $categoryData['description']
+                ]
+            );
         }
     }
 }

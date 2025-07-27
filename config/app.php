@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'APP_NAME=KolayHosting'),
+    'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost:5173'),
 
     /*
     |--------------------------------------------------------------------------

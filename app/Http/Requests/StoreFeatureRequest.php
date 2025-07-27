@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\FeatureType;
 use App\Enums\UserRole;
+use App\Models\Feature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreFeatureRequest extends FormRequest
 {
@@ -30,7 +33,7 @@ class StoreFeatureRequest extends FormRequest
         return [
             'name' => 'required|string|max:255|unique:features,name',
             'unit' => 'nullable|string|max:255',
-            'type' => 'required|in:boolean,numeric,text',
+            'type' => ['required', Rule::in(FeatureType::values())],
         ];
     }
 
@@ -45,7 +48,7 @@ class StoreFeatureRequest extends FormRequest
             'name.required' => 'Özellik adı alanı zorunludur.',
             'name.unique' => 'Bu özellik adı zaten mevcut.',
             'type.required' => 'Özellik tipi alanı zorunludur.',
-            'type.in' => 'Geçersiz özellik tipi. (boolean, numeric, text olmalı)',
+            'type.in' => 'Geçersiz özellik tipi. Geçerli tipler: ' . implode(', ', FeatureType::values()) . '.',
         ];
     }
 }

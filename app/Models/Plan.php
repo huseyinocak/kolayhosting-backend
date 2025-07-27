@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\PlanStatus;
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Plan Modeli
@@ -43,6 +46,32 @@ class Plan extends Model
         'status',
         'affiliate_url',
     ];
+
+
+    protected $casts = [
+        'status' => PlanStatus::class, // PlanStatus enum olarak tanımlanacak
+    ];
+
+    /**
+     * Modelin "boot" metodu.
+     * Model olaylarını dinlemek için kullanılır.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Yeni bir plan oluşturulmadan önce slug'ı otomatik olarak oluştur
+        static::creating(function ($plan) {
+            $plan->slug = Str::slug($plan->name . '-' . $plan->provider_id);
+        });
+
+        // Bir plan güncellenmeden önce isim veya sağlayıcı değiştiyse slug'ı güncelle
+        static::updating(function ($plan) {
+            if ($plan->isDirty('name') || $plan->isDirty('provider_id')) {
+                $plan->slug = Str::slug($plan->name . '-' . $plan->provider_id);
+            }
+        });
+    }
 
     /**
      * Planın ait olduğu sağlayıcıyı tanımlar.
@@ -84,5 +113,16 @@ class Plan extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Planın ortalama derecelendirmesini döndürür.
+     *
+     * @return float|null
+     */
+    public function getAverageRatingAttribute(): ?float
+    {
+        // Yalnızca onaylanmış incelemelerin ortalamasını al
+        return $this->reviews()->where('status', ReviewStatus::APPROVED)->avg('rating');
     }
 }

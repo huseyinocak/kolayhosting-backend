@@ -6,6 +6,7 @@ use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Review Modeli
@@ -53,6 +54,22 @@ class Review extends Model
             // Eğer status alanı ayarlanmamışsa, varsayılan olarak 'pending' yap
             if (is_null($review->status)) {
                 $review->status = ReviewStatus::PENDING;
+            }
+            // Eğer inceleme oluşturulurken statüsü APPROVED ise ve published_at boşsa, o anki zamanı ata
+            if ($review->status === ReviewStatus::APPROVED && is_null($review->published_at)) {
+                $review->published_at = now();
+            }
+
+            // Eğer user_id boşsa ve Auth::id() mevcutsa, user_id'yi ata (StoreReviewRequest'teki Auth::check() ile uyumlu)
+            if (is_null($review->user_id) && Auth::check()) {
+                $review->user_id = Auth::id();
+            }
+        });
+
+         static::updating(function ($review) {
+            // Statü 'pending'den 'approved'a değiştiyse ve published_at boşsa, o anki zamanı ata
+            if ($review->isDirty('status') && $review->status === ReviewStatus::APPROVED && is_null($review->published_at)) {
+                $review->published_at = now();
             }
         });
     }

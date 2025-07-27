@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -14,27 +15,31 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Admin kullanıcı
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@kolayhosting.com',
-            'password' => Hash::make('124312'),
-            'role' => 'admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@kolayhosting.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('124312'), // Güvenli bir şifre kullanın
+                'role' => UserRole::ADMIN,
+                'email_verified_at' => now(),
+                'is_onboarded' => true,
+                'is_premium' => true,
+            ]
+        );
 
-        // Normal kullanıcı
-        User::create([
-            'name' => 'Regular User',
-            'email' => 'user@kolayhosting.com',
-            'password' => Hash::make('124312'),
-            'role' => 'user',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'user@kolayhosting.com'],
+            [
+                'name' => 'Normal User',
+                'password' => Hash::make('124312'), // Güvenli bir şifre kullanın
+                'role' => UserRole::USER,
+                'email_verified_at' => now(),
+                'is_onboarded' => true,
+                'is_premium' => false,
+            ]
+        );
 
-        // Başka bir normal kullanıcı (Review testleri için)
-        User::create([
-            'name' => 'Another User',
-            'email' => 'another@kolayhosting.com',
-            'password' => Hash::make('124312'),
-            'role' => 'user',
-        ]);
+        // 10 adet rastgele kullanıcı oluştur
+        User::factory(10)->create();
     }
 }

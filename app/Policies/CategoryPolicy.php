@@ -42,7 +42,7 @@ class CategoryPolicy
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Category $category): bool
+    public function view(?User $user, Category $category): bool
     {
         // Tüm kimliği doğrulanmış kullanıcılar belirli bir kategoriyi görüntüleyebilir.
         return true;

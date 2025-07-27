@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ProviderResource extends JsonResource
 {
@@ -18,7 +19,7 @@ class ProviderResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo_url' => $this->logo_url,
+            'logo_url' => $this->logo_url ? Storage::url($this->logo_url) : null,
             'website_url' => $this->website_url,
             'description' => $this->description,
             'average_rating' => $this->average_rating,

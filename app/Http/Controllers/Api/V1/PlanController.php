@@ -9,8 +9,13 @@ use App\Http\Resources\FeatureResource;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Plan;
+use Exception;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class PlanController extends Controller
 {
@@ -48,11 +53,11 @@ class PlanController extends Controller
             $query->where('category_id', (int) $request->input('category_id'));
         }
 
-        // Sıralama: name, price, renewal_price, created_at, updated_at sütunlarına göre sıralama
+        // Sıralama: name, price, created_at, updated_at, average_rating sütunlarına göre sıralama
         $sortBy = $request->input('sort_by', 'name'); // Varsayılan: name
         $sortOrder = $request->input('sort_order', 'asc'); // Varsayılan: artan
 
-        if (in_array($sortBy, ['name', 'price', 'renewal_price', 'created_at', 'updated_at'])) {
+        if (in_array($sortBy, ['name', 'price', 'created_at', 'updated_at', 'average_rating'])) {
             $query->orderBy($sortBy, $sortOrder);
         } else {
             $query->orderBy('name', 'asc');
@@ -85,14 +90,13 @@ class PlanController extends Controller
      */
     public function store(StorePlanRequest $request) // Form Request yetkilendirmeyi halleder
     {
-        // $this->authorize('create', Plan::class); // Form Request'e taşındığı için kaldırıldı
+        // Yetkilendirme StorePlanRequest'in authorize() metodu tarafından halledildiği için burada authorize() çağrısı yok.
         try {
-            $validatedData = $request->validated();
-            $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name'] . '-' . $validatedData['provider_id']);
-            $plan = Plan::create($validatedData);
+            $plan = Plan::create($request->validated());
             return (new PlanResource($plan))
                 ->additional(['message' => 'Plan başarıyla oluşturuldu.', 'status' => 201]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Plan oluşturulurken bir hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'message' => 'Plan oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -112,16 +116,11 @@ class PlanController extends Controller
     {
         // $this->authorize('update', $plan); // Form Request'e taşındığı için kaldırıldı
         try {
-            $validatedData = $request->validated();
-            if (isset($validatedData['name']) || isset($validatedData['provider_id'])) {
-                $name = $validatedData['name'] ?? $plan->name;
-                $providerId = $validatedData['provider_id'] ?? $plan->provider_id;
-                $validatedData['slug'] = \Illuminate\Support\Str::slug($name . '-' . $providerId);
-            }
-            $plan->update($validatedData);
+            $plan->update($request->validated());
             return (new PlanResource($plan))
                 ->additional(['message' => 'Plan başarıyla güncellendi.', 'status' => 200]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Plan güncellenirken bir hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'message' => 'Plan güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -142,7 +141,7 @@ class PlanController extends Controller
         try {
             $plan->delete();
             return response()->json(['message' => 'Plan başarıyla silindi.', 'status' => 204], 204);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Plan silinirken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -158,70 +157,144 @@ class PlanController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
      */
-    public function getFeaturesByPlan(Plan $plan, Request $request)
+    public function getFeaturesByPlan(Plan $plan)
     {
         $this->authorize('view', $plan); // Policy kontrolü hala burada
 
-        $query = $plan->features()->getQuery();
+        $query = $plan->features()->get();
 
-        // Filtreleme: Özellik adına göre filtreleme
-        if ($request->has('name')) {
-            $query->where('name', 'like', '%' . $request->input('name') . '%');
-        }
 
-        // Sıralama: name veya type sütununa göre sıralama
-        $sortBy = $request->input('sort_by', 'name');
-        $sortOrder = $request->input('sort_order', 'asc');
 
-        if (in_array($sortBy, ['name', 'type', 'created_at', 'updated_at'])) {
-            $query->orderBy($sortBy, $sortOrder);
-        } else {
-            $query->orderBy('name', 'asc');
-        }
-
-        $perPage = $request->input('per_page', 10);
-        $features = $query->paginate($perPage);
-
-        return FeatureResource::collection($features);
+        return response()->json(FeatureResource::collection($query), 200);
     }
 
     /**
-     * Belirli bir plana ait incelemeleri listele (Pagination, Filtering, Sorting destekli).
+     * Belirli bir plana ait özellikleri listele (Pagination, Filtering, Sorting destekli).
      *
      * @param  \App\Models\Plan  $plan
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
      */
-    public function getReviewsByPlan(Plan $plan, Request $request)
+    public function getReviewsByPlan(Plan $plan)
     {
         $this->authorize('view', $plan); // Policy kontrolü hala burada
 
-        $query = $plan->reviews()->getQuery();
+        $query = $plan->reviews()->get();
 
-        // Filtreleme: Rating veya onay durumuna göre filtreleme
-        if ($request->has('rating')) {
-            $query->where('rating', (int) $request->input('rating'));
+
+
+        return response()->json(ReviewResource::collection($query), 200);
+    }
+
+    /**
+     * Bir plana özellik ekler.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Plan  $plan
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function attachFeature(Request $request, Plan $plan): JsonResponse
+    {
+        $this->authorize('update', $plan); // Planı güncelleme yetkisi kontrolü
+
+        $request->validate([
+            'feature_id' => 'required|exists:features,id',
+            'value' => 'nullable|string|max:255', // Özelliğin değeri
+        ]);
+
+        try {
+            // Eğer özellik zaten ekliyse, detach yapıp tekrar eklemek yerine update edebiliriz
+            // Veya direkt attach ile hata fırlatmasını bekleyebiliriz (eğer unique kısıtlaması varsa)
+            $plan->features()->attach($request->feature_id, ['value' => $request->value]);
+
+            // Planın güncel özelliklerini döndür
+            return response()->json([
+                'message' => 'Özellik plana başarıyla eklendi.',
+                'features' => FeatureResource::collection($plan->features()->withPivot('value')->get())
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Özellik plana eklenirken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'message' => 'Özellik plana eklenirken bir hata oluştu.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        if ($request->has('is_approved')) {
-            $isApproved = filter_var($request->input('is_approved'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($isApproved !== null) {
-                $query->where('is_approved', $isApproved);
+    }
+
+    /**
+     * Bir plandan özelliği çıkarır.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Plan  $plan
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detachFeature(Request $request, Plan $plan): JsonResponse
+    {
+        $this->authorize('update', $plan); // Planı güncelleme yetkisi kontrolü
+
+        $request->validate([
+            'feature_id' => 'required|exists:features,id',
+        ]);
+
+        try {
+            $plan->features()->detach($request->feature_id);
+
+            // Planın güncel özelliklerini döndür
+            return response()->json([
+                'message' => 'Özellik plandan başarıyla çıkarıldı.',
+                'features' => FeatureResource::collection($plan->features()->withPivot('value')->get())
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Özellik plandan çıkarılırken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'message' => 'Özellik plandan çıkarılırken bir hata oluştu.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Bir planın özelliklerini senkronize eder (mevcutları günceller, olmayanları ekler, fazlalıkları siler).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Plan  $plan
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function syncFeatures(Request $request, Plan $plan): JsonResponse
+    {
+        $this->authorize('update', $plan); // Planı güncelleme yetkisi kontrolü
+
+        $request->validate([
+            'features' => 'required|array',
+            'features.*.id' => 'required|exists:features,id',
+            'features.*.value' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $featuresToSync = [];
+            foreach ($request->features as $feature) {
+                $featuresToSync[$feature['id']] = ['value' => $feature['value']];
             }
+
+            $plan->features()->sync($featuresToSync);
+
+            // Planın güncel özelliklerini döndür
+            return response()->json([
+                'message' => 'Plan özellikleri başarıyla senkronize edildi.',
+                'features' => FeatureResource::collection($plan->features()->withPivot('value')->get())
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Doğrulama hatası.',
+                'errors' => $e->errors(),
+                'status' => 422,
+            ], 422);
+        } catch (Exception $e) {
+            Log::error('Plan özellikleri senkronize edilirken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'message' => 'Plan özellikleri senkronize edilirken bir hata oluştu.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Sıralama: Rating veya yayınlanma tarihine göre sıralama
-        $sortBy = $request->input('sort_by', 'published_at');
-        $sortOrder = $request->input('sort_order', 'desc');
-
-        if (in_array($sortBy, ['rating', 'published_at', 'created_at', 'updated_at'])) {
-            $query->orderBy($sortBy, $sortOrder);
-        } else {
-            $query->orderBy('published_at', 'desc');
-        }
-
-        $perPage = $request->input('per_page', 10);
-        $reviews = $query->paginate($perPage);
-
-        return ReviewResource::collection($reviews);
     }
 }

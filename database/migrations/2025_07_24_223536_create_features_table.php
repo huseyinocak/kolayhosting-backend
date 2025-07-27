@@ -10,8 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_premium')->default(false)->after('is_onboarded'); // Yeni premium özelliği
+        Schema::create('features', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->string('unit')->nullable();
+            $table->string('type'); // App\Enums\FeatureType'a göre
+            $table->timestamps();
         });
     }
 
@@ -20,8 +24,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_premium'); // Premium özelliğini geri al
-        });
+        Schema::dropIfExists('features');
     }
 };

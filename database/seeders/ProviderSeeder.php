@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PlanStatus;
+use App\Models\Category;
+use App\Models\Plan;
 use Illuminate\Database\Seeder;
 use App\Models\Provider;
 use Illuminate\Support\Str;
@@ -13,53 +16,49 @@ class ProviderSeeder extends Seeder
      */
     public function run(): void
     {
-        $providers = [
+      $providers = [
             [
                 'name' => 'Hostinger',
-                'logo_url' => 'https://placehold.co/150x50/F8F8F8/000000?text=Hostinger',
-                'website_url' => 'https://www.hostinger.com/',
-                'description' => 'Uygun fiyatlı ve performanslı hosting çözümleri sunar.',
-                'average_rating' => 4.7,
+                'description' => 'Uygun fiyatlı ve hızlı hosting çözümleri sunar.',
+                'website_url' => 'https://www.hostinger.com.tr/',
+                'affiliate_url' => 'https://www.hostinger.com.tr/affiliate-link-hostinger',
+                'logo_url' => 'provider_logos/hostinger_logo.png', // Örnek placeholder
             ],
             [
-                'name' => 'Bluehost',
-                'logo_url' => 'https://placehold.co/150x50/F8F8F8/000000?text=Bluehost',
-                'website_url' => 'https://www.bluehost.com/',
-                'description' => 'WordPress için önerilen popüler bir hosting sağlayıcısı.',
-                'average_rating' => 4.5,
+                'name' => 'Natro',
+                'description' => 'Türkiye merkezli köklü hosting firması.',
+                'website_url' => 'https://www.natro.com/',
+                'affiliate_url' => 'https://www.natro.com/affiliate-link-natro',
+                'logo_url' => 'provider_logos/natro_logo.png', // Örnek placeholder
             ],
             [
-                'name' => 'SiteGround',
-                'logo_url' => 'https://placehold.co/150x50/F8F8F8/000000?text=SiteGround',
-                'website_url' => 'https://www.siteground.com/',
-                'description' => 'Hızlı ve güvenli hosting hizmetleri sunar.',
-                'average_rating' => 4.8,
+                'name' => 'Godaddy',
+                'description' => 'Alan adı ve hosting hizmetlerinde dünya lideri.',
+                'website_url' => 'https://tr.godaddy.com/',
+                'affiliate_url' => 'https://tr.godaddy.com/affiliate-link-godaddy',
+                'logo_url' => 'provider_logos/godaddy_logo.png', // Örnek placeholder
             ],
             [
-                'name' => 'A2 Hosting',
-                'logo_url' => 'https://placehold.co/150x50/F8F8F8/000000?text=A2+Hosting',
-                'website_url' => 'https://www.a2hosting.com/',
-                'description' => 'Yüksek hızlı ve geliştirici dostu hosting çözümleri.',
-                'average_rating' => 4.6,
+                'name' => 'Turhost',
+                'description' => 'Güvenilir ve performanslı hosting hizmetleri.',
+                'website_url' => 'https://www.turhost.com/',
+                'affiliate_url' => 'https://www.turhost.com/affiliate-link-turhost',
+                'logo_url' => 'provider_logos/turhost_logo.png', // Örnek placeholder
             ],
             [
-                'name' => 'DreamHost',
-                'logo_url' => 'https://placehold.co/150x50/F8F8F8/000000?text=DreamHost',
-                'website_url' => 'https://www.dreamhost.com/',
-                'description' => 'Sınırsız bant genişliği ve depolama sunan güvenilir hosting.',
-                'average_rating' => 4.4,
+                'name' => 'Güzel Hosting',
+                'description' => 'Uygun fiyatlı ve kaliteli hosting çözümleri.',
+                'website_url' => 'https://www.guzelhosting.com/',
+                'affiliate_url' => 'https://www.guzelhosting.com/affiliate-link-guzelhosting',
+                'logo_url' => 'provider_logos/guzelhosting_logo.png', // Örnek placeholder
             ],
         ];
 
         foreach ($providers as $providerData) {
-            Provider::create([
-                'name' => $providerData['name'],
-                'slug' => Str::slug($providerData['name']),
-                'logo_url' => $providerData['logo_url'],
-                'website_url' => $providerData['website_url'],
-                'description' => $providerData['description'],
-                'average_rating' => $providerData['average_rating'],
-            ]);
+            Provider::firstOrCreate(
+                ['name' => $providerData['name']],
+                array_merge($providerData, ['slug' => Str::slug($providerData['name'])])
+            );
         }
     }
 }

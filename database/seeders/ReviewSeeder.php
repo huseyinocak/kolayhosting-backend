@@ -6,6 +6,7 @@ use App\Enums\ReviewStatus;
 use App\Models\Plan;
 use App\Models\Provider;
 use App\Models\Review;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,68 +18,63 @@ class ReviewSeeder extends Seeder
      */
     public function run(): void
     {
-        $hostinger = Provider::where('slug', 'hostinger')->first();
-        $bluehost = Provider::where('slug', 'bluehost')->first();
-        $siteground = Provider::where('slug', 'siteground')->first();
+        $users = User::all();
+        $providers = Provider::all();
+        $plans = Plan::all();
 
-        $hostingerPremiumPlan = Plan::where('slug', 'premium-web-hosting-1')->first();
-        $bluehostBasicWordPressPlan = Plan::where('slug', 'basic-wordpress-2')->first();
-        $sitegroundStartUpPlan = Plan::where('slug', 'startup-3')->first();
+        if ($users->isEmpty() || $providers->isEmpty()) {
+            $this->command->info('User veya Provider bulunamadı. Lütfen önce UserSeeder ve ProviderSeeder\'ı çalıştırın.');
+            return;
+        }
 
-        $reviews = [
-            [
-                'provider_id' => $hostinger->id ?? null,
-                'plan_id' => $hostingerPremiumPlan->id ?? null,
-                'user_name' => 'Ahmet Yılmaz',
-                'rating' => 5,
-                'title' => 'Hostinger Premium çok iyi!',
-                'content' => 'Hostinger Premium Web Hosting planından çok memnunum. Hız ve destek mükemmel.',
-                'published_at' => Carbon::now()->subDays(10),
-                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
-            ],
-            [
-                'provider_id' => $bluehost->id ?? null,
-                'plan_id' => $bluehostBasicWordPressPlan->id ?? null,
-                'user_name' => 'Ayşe Demir',
-                'rating' => 4,
-                'title' => 'Bluehost WordPress için ideal',
-                'content' => 'WordPress sitem için Bluehost Basic planını kullanıyorum. Kurulumu kolay ve performansı tatmin edici.',
-                'published_at' => Carbon::now()->subDays(15),
-                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
-            ],
-            [
-                'provider_id' => $siteground->id ?? null,
-                'plan_id' => $sitegroundStartUpPlan->id ?? null,
-                'user_name' => 'Mehmet Can',
-                'rating' => 5,
-                'title' => 'SiteGround Hızı Harika',
-                'content' => 'SiteGround StartUp planı ile sitem çok hızlı çalışıyor. Destek ekibi de çok yardımcı.',
-                'published_at' => Carbon::now()->subDays(5),
-                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
-            ],
-            [
-                'provider_id' => $hostinger->id ?? null,
-                'plan_id' => null, // Sadece sağlayıcıya genel bir yorum
-                'user_name' => 'Zeynep Kaya',
-                'rating' => 4,
-                'title' => 'Hostinger Genel Değerlendirme',
-                'content' => 'Hostinger genel olarak iyi bir deneyim sunuyor, fiyatları da oldukça uygun.',
-                'published_at' => Carbon::now()->subDays(20),
-                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
-            ],
-            [
-                'provider_id' => null, // Sadece plana özel bir yorum
-                'plan_id' => $hostingerPremiumPlan->id ?? null,
-                'user_name' => 'Emre Aktaş',
-                'rating' => 3,
-                'title' => 'Hostinger Premium Yenileme Fiyatı',
-                'content' => 'İlk başta çok iyiydi ama yenileme fiyatları biraz yüksek geldi.',
-                'published_at' => Carbon::now()->subDays(8),
-                'status' => ReviewStatus::PENDING, // Varsayılan olarak PENDING
-            ],
-        ];
-        foreach ($reviews as $reviewData) {
-            Review::create($reviewData);
+        for ($i = 0; $i < 50; $i++) { // 50 adet rastgele inceleme oluştur
+            $user = $users->random();
+            $provider = $providers->random();
+            $plan = $plans->where('provider_id', $provider->id)->random(); // Sağlayıcının bir planını seç
+
+            $status = fake()->randomElement(ReviewStatus::values());
+            $publishedAt = ($status === ReviewStatus::APPROVED) ? fake()->dateTimeBetween('-1 year', 'now') : null;
+
+            Review::firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'provider_id' => $provider->id,
+                    'plan_id' => $plan->id,
+                    'title' => fake()->sentence(3),
+                ],
+                [
+                    'user_name' => $user->name,
+                    'rating' => fake()->numberBetween(1, 5),
+                    'content' => fake()->paragraph(3),
+                    'published_at' => $publishedAt,
+                    'status' => $status,
+                ]
+            );
+        }
+
+        // Misafir yorumları için
+        for ($i = 0; $i < 10; $i++) {
+            $provider = $providers->random();
+            $plan = $plans->where('provider_id', $provider->id)->random();
+
+            $status = fake()->randomElement(ReviewStatus::values());
+            $publishedAt = ($status === ReviewStatus::APPROVED) ? fake()->dateTimeBetween('-1 year', 'now') : null;
+
+            Review::firstOrCreate(
+                [
+                    'user_id' => null, // Misafir yorumu
+                    'user_name' => fake()->name(),
+                    'provider_id' => $provider->id,
+                    'plan_id' => $plan->id,
+                    'title' => fake()->sentence(3),
+                ],
+                [
+                    'rating' => fake()->numberBetween(1, 5),
+                    'content' => fake()->paragraph(3),
+                    'published_at' => $publishedAt,
+                    'status' => $status,
+                ]
+            );
         }
 
     }

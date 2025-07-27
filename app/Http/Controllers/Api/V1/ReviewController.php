@@ -8,9 +8,13 @@ use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Review;
+use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ReviewController extends Controller
 {
@@ -54,83 +58,20 @@ class ReviewController extends Controller
         }
 
         // 2. Sıralama (Sorting)
-        // Varsayılan sıralama: created_at azalan
-        $sortBy = $request->input('sort_by', 'created_at'); // 'published_at' yerine 'created_at' daha genel olabilir
-        $sortOrder = $request->input('sort_order', 'desc'); // Varsayılan azalan
-
-        // Güvenlik için izin verilen sıralama sütunları
-        $allowedSorts = ['id', 'rating', 'title', 'created_at', 'updated_at', 'published_at'];
-        if (!in_array($sortBy, $allowedSorts)) {
-            $sortBy = 'created_at'; // Geçersiz sütun ise varsayılana dön
-        }
-        if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) {
-            $sortOrder = 'asc'; // Geçersiz sıralama düzeni ise varsayılana dön
-        }
-
-        $query->orderBy($sortBy, $sortOrder);
-
-        // 3. Sayfalama (Pagination)
-        $perPage = $request->input('per_page', 15); // Her sayfada varsayılan 15 öğe
-        $reviews = $query->paginate($perPage);
-
-        // ReviewResource ile dönüştürerek döndür
-        return ReviewResource::collection($reviews);
-    }
-
-    /**
-     * Tüm incelemeleri listele (Kimliği doğrulanmış kullanıcılar için, adminler dahil).
-     * Bu rota kimlik doğrulaması gerektirir ve adminler için tüm incelemeleri gösterir.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
-     */
-    public function indexAuthenticated(Request $request)
-    {
-        // Temel sorguyu başlat - burada is_approved filtresi uygulanmaz
-        $query = Review::with(['provider', 'plan', 'user']);
-
-        // 1. Filtreleme (Filtering)
-        if ($request->has('provider_id')) {
-            $query->where('provider_id', $request->input('provider_id'));
-        }
-        if ($request->has('plan_id')) {
-            $query->where('plan_id', $request->input('plan_id'));
-        }
-        if ($request->has('rating')) {
-            $query->where('rating', (int) $request->input('rating'));
-        }
-        // 'is_approved' yerine 'status' filtresi
-        if ($request->has('status')) {
-            $status = $request->input('status');
-            // Gelen status değerinin ReviewStatus enum'ında geçerli olup olmadığını kontrol et
-            if (in_array($status, ReviewStatus::values())) {
-                $query->where('status', ReviewStatus::from($status));
-            }
-        }
-        if ($request->has('title')) {
-            $query->where('title', 'like', '%' . $request->input('title') . '%');
-        }
-        if ($request->has('content')) {
-            $query->where('content', 'like', '%' . $request->input('content') . '%');
-        }
-
-        // 2. Sıralama (Sorting)
-        $sortBy = $request->input('sort_by', 'created_at');
+        // Varsayılan sıralama: published_at azalan, sonra created_at azalan
+        $sortBy = $request->input('sort_by', 'published_at');
         $sortOrder = $request->input('sort_order', 'desc');
-        $allowedSorts = ['id', 'rating', 'title', 'created_at', 'updated_at', 'published_at'];
-        if (!in_array($sortBy, $allowedSorts)) {
-            $sortBy = 'created_at';
+
+        if (in_array($sortBy, ['rating', 'published_at', 'created_at', 'updated_at'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('published_at', 'desc'); // Geçersiz sort_by durumunda varsayılan
         }
-        if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) {
-            $sortOrder = 'asc';
-        }
-        $query->orderBy($sortBy, $sortOrder);
 
         // 3. Sayfalama (Pagination)
-        $perPage = $request->input('per_page', 15);
+        $perPage = $request->input('per_page', 10);
         $reviews = $query->paginate($perPage);
 
-        // ReviewResource ile dönüştürerek döndür
         return ReviewResource::collection($reviews);
     }
 
@@ -160,13 +101,31 @@ class ReviewController extends Controller
         // Yetkilendirme StoreReviewRequest'in authorize() metodu tarafından halledildiği için burada authorize() çağrısı yok.
         try {
             $validatedData = $request->validated();
-            $validatedData['user_id'] = Auth::id(); // İncelemeyi oluşturan kullanıcının ID'sini otomatik olarak ata
+
+            // Eğer user_id boşsa ve kullanıcı oturum açmışsa, user_id'yi ata
+            if (empty($validatedData['user_id']) && Auth::check()) {
+                $validatedData['user_id'] = Auth::id();
+            }
+
+            // Eğer user_id hala boşsa (misafir yorumu) ve user_name de boşsa hata ver
+            if (empty($validatedData['user_id']) && empty($validatedData['user_name'])) {
+                throw ValidationException::withMessages([
+                    'user_name' => 'Misafir yorumları için kullanıcı adı zorunludur.',
+                ]);
+            }
 
             $review = Review::create($validatedData);
 
             return (new ReviewResource($review))
-                ->additional(['message' => 'İnceleme başarıyla oluşturuldu.', 'status' => 201]);
-        } catch (\Exception $e) {
+                ->additional(['message' => 'İnceleme başarıyla oluşturuldu. Onay bekliyor.', 'status' => 201]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Doğrulama hatası.',
+                'errors' => $e->errors(),
+                'status' => 422,
+            ], 422);
+        } catch (Exception $e) {
+            Log::error('İnceleme oluşturulurken bir hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'message' => 'İnceleme oluşturulurken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -191,7 +150,8 @@ class ReviewController extends Controller
             $review->update($validatedData);
             return (new ReviewResource($review))
                 ->additional(['message' => 'İnceleme başarıyla güncellendi.', 'status' => 200]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('İnceleme güncellenirken bir hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'message' => 'İnceleme güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),
@@ -215,9 +175,61 @@ class ReviewController extends Controller
         try {
             $review->delete();
             return response()->json(['message' => 'İnceleme başarıyla silindi.', 'status' => 204], 204);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('İnceleme silinirken bir hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'message' => 'İnceleme silinirken bir hata oluştu.',
+                'error' => $e->getMessage(),
+                'status' => 500,
+            ], 500);
+        }
+    }
+
+    /**
+     * Bir incelemenin durumunu günceller (Admin yetkisi gerektirir).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Review  $review
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function changeStatus(Request $request, Review $review): JsonResponse
+    {
+        // Sadece adminlerin bu işlemi yapmasına izin ver
+        $this->authorize('admin'); // AuthServiceProvider'daki 'admin' gate'ini kullan
+
+        try {
+            $request->validate([
+                'status' => ['required', 'string', \Illuminate\Validation\Rule::in(ReviewStatus::values())],
+            ]);
+
+            $newStatus = ReviewStatus::from($request->status);
+
+            // Eğer statü değişiyorsa ve yeni statü APPROVED ise published_at'ı güncelle
+            if ($review->status !== $newStatus && $newStatus === ReviewStatus::APPROVED) {
+                $review->published_at = now();
+            } elseif ($newStatus !== ReviewStatus::APPROVED) {
+                // Eğer statü APPROVED değilse, published_at'ı null yapabiliriz (isteğe bağlı, iş mantığına göre)
+                $review->published_at = null;
+            }
+
+            $review->status = $newStatus;
+            $review->save();
+
+            return response()->json([
+                'message' => 'İnceleme durumu başarıyla güncellendi.',
+                'review' => new ReviewResource($review),
+                'status' => 200,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Doğrulama hatası.',
+                'errors' => $e->errors(),
+                'status' => 422,
+            ], 422);
+        } catch (Exception $e) {
+            Log::error('İnceleme durumu güncellenirken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'message' => 'İnceleme durumu güncellenirken bir hata oluştu.',
                 'error' => $e->getMessage(),
                 'status' => 500,
             ], 500);

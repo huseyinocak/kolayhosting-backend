@@ -41,4 +41,24 @@ class PlanFeature extends Model
      * @var array<string>
      */
     protected $primaryKey = ['plan_id', 'feature_id'];
+
+    /**
+     * PlanFeature'ın ait olduğu planı tanımlar.
+     *
+     * @return BelongsTo
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * PlanFeature'ın ait olduğu özelliği tanımlar.
+     *
+     * @return BelongsTo
+     */
+    public function feature(): BelongsTo
+    {
+        return $this->belongsTo(Feature::class);
+    }
 }

@@ -9,8 +9,12 @@ use App\Http\Resources\PlanResource;
 use App\Http\Resources\ProviderResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Provider;
+use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProviderController extends Controller
 {
@@ -76,14 +80,22 @@ class ProviderController extends Controller
         try {
             // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
             $validatedData = $request->validated();
+            // Logo yükleme kontrolü
+            if ($request->hasFile('logo')) {
+                $path = $request->file('logo')->store('provider_logos', 'public');
+                $data['logo_url'] = Storage::url($path);
+                Log::info('Logo başarıyla yüklendi: ' . $data['logo_url']);
+            } else {
+                Log::info('Logo dosyası yüklenmedi.');
+            }
 
-            $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
+            $validatedData['slug'] = Str::slug($validatedData['name']);
 
             $provider = Provider::create($validatedData);
 
             return (new ProviderResource($provider))
                 ->additional(['message' => 'Sağlayıcı başarıyla oluşturuldu.', 'status' => 201]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Sağlayıcı oluşturulurken bir hata oluştu.',
@@ -102,20 +114,53 @@ class ProviderController extends Controller
      */
     public function update(UpdateProviderRequest $request, Provider $provider) // Form Request yetkilendirmeyi halleder
     {
+        Log::info('Provider güncelleme isteği alındı. Provider ID: ' . $provider->id . ($request->hasFile('logo') ? ' with logo' : ' without logo'));
         // $this->authorize('update', $provider); // Form Request'e taşındığı için kaldırıldı
         try {
             // Doğrulama Form Request tarafından yapıldığı için burada doğrudan validated() metodunu kullanıyoruz.
             $validatedData = $request->validated();
 
             if (isset($validatedData['name'])) {
-                $validatedData['slug'] = \Illuminate\Support\Str::slug($validatedData['name']);
+                $validatedData['slug'] = Str::slug($validatedData['name']);
+            }
+
+            // Logo yükleme kontrolü
+            if ($request->hasFile('logo')) {
+                // Eğer mevcut bir logo varsa, eskisini sil
+                if ($provider->logo_url) {
+                    $oldPath = str_replace(Storage::url(''), '', $provider->logo_url);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                        Log::info('Eski logo silindi: ' . $oldPath);
+                    }
+                }
+                $path = $request->file('logo')->store('provider_logos', 'public');
+                $validatedData['logo_url'] = Storage::url($path);
+                Log::info('Yeni logo başarıyla yüklendi: ' . $validatedData['logo_url']);
+            } else if (array_key_exists('logo', $request->all()) && $request->input('logo') === null) {
+                // Eğer frontend'den 'logo' alanı null olarak geliyorsa (yani logo kaldırıldıysa)
+                if ($provider->logo_url) {
+                    $oldPath = str_replace(Storage::url(''), '', $provider->logo_url);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                        Log::info('Logo null olarak ayarlandı, eski logo silindi: ' . $oldPath);
+                    }
+                }
+                $validatedData['logo_url'] = null;
+            } else {
+                // Logo dosyası gönderilmediyse ve mevcut bir logo_url varsa, onu koru
+                // Bu durum, logo alanının 'sometimes' kuralı nedeniyle boş bırakıldığı durumdur.
+                // Eğer logo_url gönderilmediyse, mevcut değeri koruruz.
+                // Eğer logo_url gönderildi ama null ise, yukarıdaki if-else if bloğu halleder.
+                unset($validatedData['logo_url']); // Mevcut logo_url'i korumak için kaldır
+                Log::info('Logo dosyası gönderilmedi, mevcut logo_url korunuyor.');
             }
 
             $provider->update($validatedData);
 
             return (new ProviderResource($provider))
                 ->additional(['message' => 'Sağlayıcı başarıyla güncellendi.', 'status' => 200]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Sadece beklenmeyen genel hataları yakala, doğrulama hataları FormRequest tarafından otomatik yönetilir.
             return response()->json([
                 'message' => 'Sağlayıcı güncellenirken bir hata oluştu.',
@@ -137,7 +182,7 @@ class ProviderController extends Controller
         try {
             $provider->delete();
             return response()->json(['message' => 'Sağlayıcı başarıyla silindi.', 'status' => 204], 204);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Sağlayıcı silinirken bir hata oluştu.',
                 'error' => $e->getMessage(),

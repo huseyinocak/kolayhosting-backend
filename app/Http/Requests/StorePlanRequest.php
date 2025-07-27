@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PlanStatus;
 use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StorePlanRequest extends FormRequest
 {
@@ -28,7 +30,14 @@ class StorePlanRequest extends FormRequest
         return [
             'provider_id' => 'required|exists:providers,id',
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('plans')->where(function ($query) {
+                    return $query->where('provider_id', $this->provider_id);
+                })
+            ],
             'price' => 'required|numeric|min:0',
             'currency' => 'required|string|max:3',
             'renewal_price' => 'nullable|numeric|min:0',
@@ -36,7 +45,7 @@ class StorePlanRequest extends FormRequest
             'features_summary' => 'nullable|string',
             'link' => 'required|url|max:255',
             'affiliate_url' => 'nullable|url|max:255', // Yeni affiliate URL alanı
-            'status' => 'required|in:active,inactive,deprecated',
+            'status' => ['required', Rule::in(PlanStatus::values())],
         ];
     }
 
@@ -53,13 +62,14 @@ class StorePlanRequest extends FormRequest
             'category_id.required' => 'Kategori ID alanı zorunludur.',
             'category_id.exists' => 'Belirtilen kategori ID\'si geçersiz.',
             'name.required' => 'Plan adı alanı zorunludur.',
+            'name.unique' => 'Bu sağlayıcı altında bu plan adı zaten mevcut.',
             'price.required' => 'Fiyat alanı zorunludur.',
             'price.numeric' => 'Fiyat sayısal bir değer olmalıdır.',
             'currency.required' => 'Para birimi alanı zorunludur.',
             'link.required' => 'Bağlantı alanı zorunludur.',
             'link.url' => 'Bağlantı geçerli bir URL olmalıdır.',
             'status.required' => 'Durum alanı zorunludur.',
-            'status.in' => 'Geçersiz durum değeri. (active, inactive, deprecated olmalı)',
+            'status.in' => 'Geçersiz durum tipi. Geçerli tipler: ' . implode(', ', PlanStatus::values()) . '.',
         ];
     }
 }

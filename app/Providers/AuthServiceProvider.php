@@ -2,16 +2,19 @@
 
 namespace App\Providers;
 
+use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\Feature;
 use App\Models\Plan;
 use App\Models\Provider;
 use App\Models\Review;
+use App\Models\User;
 use App\Policies\CategoryPolicy;
 use App\Policies\FeaturePolicy;
 use App\Policies\PlanPolicy;
 use App\Policies\ProviderPolicy;
 use App\Policies\ReviewPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -42,6 +45,10 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 'admin' yetkisini tanımla
+        Gate::define('admin', function (User $user) {
+            // Kullanıcının 'role' sütununun 'admin' olup olmadığını kontrol et
+            return $user->isAdmin();
+        });
     }
 }
