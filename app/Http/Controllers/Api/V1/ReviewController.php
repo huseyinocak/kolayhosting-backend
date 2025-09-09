@@ -8,6 +8,7 @@ use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Review;
+use App\Models\User;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -233,6 +234,78 @@ class ReviewController extends Controller
                 'error' => $e->getMessage(),
                 'status' => 500,
             ], 500);
+        }
+    }
+
+    /**
+     * Kimliği doğrulanmış kullanıcının kendi incelemelerini listeler.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
+     */
+    public function getUserReviews(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Kimliği doğrulanmış kullanıcı bulunamadı.'], 401);
+            }
+
+            if (!$user instanceof User) {
+                Log::error('ReviewController@getUserReviews: Auth::user() beklenmeyen bir tip veya null döndürdü.', [
+                    'user_id' => Auth::id(), // Mümkünse kullanıcı ID'sini al
+                    'user_type' => is_object($user) ? get_class($user) : gettype($user), // Gerçek sınıfı veya tipi al
+                ]);
+                return response()->json(['message' => 'Kullanıcının incelemelerinde beklenmeyen bir hata oluştu: Kullanıcı modeli bulunamadı.'], 500);
+            }
+
+            $query = $user->reviews()->with(['provider', 'plan']);
+
+            // Filtreleme: provider_id, plan_id, rating, status, title, content
+            if ($request->has('provider_id')) {
+                $query->where('provider_id', $request->input('provider_id'));
+            }
+            if ($request->has('plan_id')) {
+                $query->where('plan_id', $request->input('plan_id'));
+            }
+            if ($request->has('rating')) {
+                $query->where('rating', (int) $request->input('rating'));
+            }
+            if ($request->has('status')) {
+                $status = $request->input('status');
+                if (in_array($status, ReviewStatus::values())) {
+                    $query->where('status', $status);
+                }
+            }
+            if ($request->has('title')) {
+                $query->where('title', 'like', '%' . $request->input('title') . '%');
+            }
+            if ($request->has('content')) {
+                $query->where('content', 'like', '%' . $request->input('content') . '%');
+            }
+
+            // Sıralama
+            $sortBy = $request->input('sort_by', 'created_at');
+            $sortOrder = $request->input('sort_order', 'desc');
+
+            if (in_array($sortBy, ['rating', 'created_at', 'updated_at', 'published_at'])) {
+                $query->orderBy($sortBy, $sortOrder);
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+
+            // Sayfalama
+            $perPage = $request->input('per_page', 10);
+            $perPage = min(100, max(1, (int) $perPage));
+
+            $reviews = $query->paginate($perPage);
+
+            return ReviewResource::collection($reviews);
+
+        } catch (Exception $e) {
+            Log::error('Kullanıcının incelemeleri alınırken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['message' => 'İncelemeler alınırken bir hata oluştu.'], 500);
         }
     }
 }

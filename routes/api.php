@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\FeatureController;
 use App\Http\Controllers\Api\V1\PlanController;
 use App\Http\Controllers\Api\V1\ProviderController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,7 @@ Route::prefix('v1')->group(function () {
         Route::get('providers/{provider}/reviews', [ProviderController::class, 'getReviewsByProvider']);
         // AI Chatbot Route
         Route::post('/ai/chat', [AiChatController::class, 'chat']); // Yeni AI Chatbot rotası
+        Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
         // Planlar için Public API rotaları
         Route::get('plans', [PlanController::class, 'index']);
         Route::get('plans/{plan}', [PlanController::class, 'show']);
@@ -80,6 +82,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']); // Kimliği doğrulanmış kullanıcı bilgilerini getir
+        Route::put('user/profile', [AuthController::class, 'updateProfile']); // Kullanıcı profilini güncelleme rotası - EKLENDİ
 
         Route::middleware('can:admin')->group(function () {
             // Kullanıcı Yönetimi Rotları
@@ -88,7 +91,7 @@ Route::prefix('v1')->group(function () {
             Route::get('admin/users/{user}', [AdminUserController::class, 'show']);
             Route::put('admin/users/{user}', [AdminUserController::class, 'update']);
             Route::delete('admin/users/{user}', [AdminUserController::class, 'destroy']);
-             Route::get('admin/dashboard/stats', [AdminUserController::class, 'getStats']);
+            Route::get('admin/dashboard/stats', [AdminUserController::class, 'getStats']);
         });
         // Kategoriler için API rotaları (CRUD)
         Route::post('categories', [CategoryController::class, 'store']);
@@ -119,6 +122,7 @@ Route::prefix('v1')->group(function () {
         Route::put('reviews/{review}', [ReviewController::class, 'update']);
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy']);
         Route::put('reviews/{review}/status', [ReviewController::class, 'changeStatus']); // İnceleme durumu değiştirme rotası
+        Route::get('user/reviews', [ReviewController::class, 'getUserReviews']); // Kullanıcının kendi incelemelerini listeleme rotası - EKLENDİ
     });
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateUserProfileRequest;
 use App\Models\User;
 use Exception;
 use Illuminate\Auth\Events\Registered;
@@ -152,6 +153,71 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    /**
+     * Kullanıcının profil bilgilerini günceller.
+     *
+     * @param  \App\Http\Requests\UpdateUserProfileRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateProfile(UpdateUserProfileRequest $request): JsonResponse
+    {
+        try {
+            $user = Auth::user(); // Kimliği doğrulanmış kullanıcıyı al
+
+            $validatedData = $request->validated();
+
+            if (!$user instanceof User) {
+                Log::error('AuthController@updateProfile: Auth::user() beklenmeyen bir tip veya null döndürdü.', [
+                    'user_id' => Auth::id(), // Mümkünse kullanıcı ID'sini al
+                    'user_type' => is_object($user) ? get_class($user) : gettype($user), // Gerçek sınıfı veya tipi al
+                ]);
+                return response()->json(['message' => 'Profil güncellenirken beklenmeyen bir hata oluştu: Kullanıcı modeli bulunamadı.'], 500);
+            }
+
+            $validatedData = $request->validated();
+
+            // Şifre alanı boş değilse veya null değilse şifreyi güncelle
+            if (isset($validatedData['password']) && !is_null($validatedData['password'])) {
+                $user->password = Hash::make($validatedData['password']);
+            }
+
+            // Diğer alanları güncelle (name, email vb.)
+            $user->fill($request->except('password', 'password_confirmation'));
+            $user->save();
+
+            // Eğer e-posta değiştiyse ve doğrulanması gerekiyorsa, e-posta doğrulama olayını tetikle
+            if ($user instanceof MustVerifyEmail && $user->isDirty('email')) {
+                $user->markEmailAsUnverified(); // E-postayı doğrulanmamış olarak işaretle
+                event(new Registered($user)); // Yeni doğrulama e-postası gönder
+                $message = 'Profil başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen e-postanızı kontrol edin.';
+            } else {
+                $message = 'Profil başarıyla güncellendi.';
+            }
+
+            return response()->json([
+                'message' => $message,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'is_onboarded' => $user->is_onboarded,
+                    'is_premium' => $user->is_premium,
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toDateTimeString() : null,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Doğrulama hatası.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            Log::error('Profil güncellenirken hata oluştu: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['message' => 'Profil güncellenirken bir hata oluştu.'], 500);
+        }
     }
 
     /**

@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173', 'https://kolayhosting.com.tr', 'https://www.kolayhosting.com.tr'],
+    'allowed_origins' => ['https://kolayhosting.com.tr', 'https://www.kolayhosting.com.tr'],
 
     'allowed_origins_patterns' => [],
 
