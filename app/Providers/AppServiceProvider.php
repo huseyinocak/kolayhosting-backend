@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Exceptions\Handler;
 use App\Models\Review;
 use App\Observers\ReviewObserver;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,4 +32,5 @@ class AppServiceProvider extends ServiceProvider
         // Review modelini ReviewObserver ile gözlemle
         Review::observe(ReviewObserver::class);
     }
+
 }

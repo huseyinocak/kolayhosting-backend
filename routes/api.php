@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\FeatureController;
+use App\Http\Controllers\Api\v1\ImportController;
 use App\Http\Controllers\Api\V1\PlanController;
 use App\Http\Controllers\Api\V1\ProviderController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -92,6 +93,11 @@ Route::prefix('v1')->group(function () {
             Route::put('admin/users/{user}', [AdminUserController::class, 'update']);
             Route::delete('admin/users/{user}', [AdminUserController::class, 'destroy']);
             Route::get('admin/dashboard/stats', [AdminUserController::class, 'getStats']);
+        });
+        Route::prefix('admin')->group(function () {
+            Route::post('import/plans', [ImportController::class, 'importPlans']);
+            Route::post('import/providers', [ImportController::class, 'importProviders']);
+            Route::post('import/features', [ImportController::class, 'importFeatures']);
         });
         // Kategoriler için API rotaları (CRUD)
         Route::post('categories', [CategoryController::class, 'store']);
